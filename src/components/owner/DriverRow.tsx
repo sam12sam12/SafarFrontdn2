@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import type { Driver } from "@/lib/db/types";
+import { showToast } from "@/components/ui/Toast";
+import { colors } from "@/utils/theme";
 import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
 import { Ripple } from "../ui/Ripple";
-import { colors } from "@/utils/theme";
 
 type Props = {
   driver: Driver;
@@ -14,55 +16,65 @@ type Props = {
 };
 
 const STATUS = {
-  "on-road": { label: "On road", tone: "green" as const },
-  "trip-today": { label: "Trip today", tone: "blue" as const },
-  free: { label: "Free", tone: "slate" as const },
-  rest: { label: "Rest", tone: "amber" as const },
-};
+  "on-road": { key: "owner.statusOnRoad", pill: "text-success", dot: true },
+  "trip-today": { key: "owner.countTripToday", pill: "text-primary", dot: true },
+  free: { key: "owner.statusFree", pill: "text-success", dot: true },
+  rest: { key: "owner.statusRest", pill: "text-secText", dot: false },
+} as const;
 
 export function DriverRow({ driver, onPress }: Props) {
+  const { t } = useTranslation();
   const status = STATUS[driver.status];
+  const vehicle = driver.vehicleModel.replace("Toyota ", "").replace(" 2018", "");
 
   return (
-    <Ripple onPress={onPress} accessibilityLabel={`Open ${driver.name}`} className="rounded-lg">
-      <Card className="gap-2.5">
-        <View className="flex-row items-center gap-3">
-          <Avatar initials={driver.initials} photo={driver.photo} size="md" verified />
+    <Ripple onPress={onPress} accessibilityLabel={driver.name} className="rounded-lg">
+      <Card className="gap-2.5 p-3.5 rounded-lg">
+        <View className="flex-row items-center gap-2.5">
+          <Avatar initials={driver.initials} photo={driver.photo} size="sm" online={status.dot} />
           <View className="flex-1">
             <Text className="text-base-lg font-bold text-text" numberOfLines={1}>
               {driver.name}
             </Text>
-            <View className="flex-row items-center gap-1.5 mt-0.5">
-              <Icon name="star" size={12} color={colors.warning} />
-              <Text className="text-sm font-semibold text-text">{driver.rating.toFixed(1)}</Text>
-              <Text className="text-sm text-secText">
-                · {driver.tripsThisMonth} trips · {driver.base}
+            <View className="flex-row items-center gap-1 mt-0.5">
+              <Icon name="star" size={11} color={colors.warning} />
+              <Text className="text-sm font-semibold text-secText">{driver.rating.toFixed(1)}</Text>
+              <Text className="text-sm text-muted" numberOfLines={1}>
+                · {driver.tripsThisMonth} {t("owner.thisMonth")} · {driver.base}
               </Text>
             </View>
           </View>
-          <Badge label={status.label} tone={status.tone} compact />
+          <Ripple
+            onPress={() => showToast("info", t("owner.calling"), driver.name)}
+            accessibilityLabel={`${t("owner.callDriver")} ${driver.name}`}
+            className="w-8 h-8 rounded-full bg-primarySoft items-center justify-center"
+          >
+            <Icon name="phone" size={15} color={colors.primary} />
+          </Ripple>
         </View>
 
-        <View className="flex-row items-center justify-between rounded-base bg-elevated border border-secBorder px-3 py-2">
-          <View className="flex-row items-center gap-1.5 flex-1">
-            <Icon name="directions-car" size={14} color={colors.secText} />
-            <Text className="text-sm text-secText">
-              {driver.vehicleModel} · {driver.plate}
-            </Text>
-          </View>
-          <Text className="text-2xs text-secText" numberOfLines={1}>
+        <View className="flex-row items-center gap-2 rounded-sm bg-elevated px-2 py-1.5">
+          <Text className={`text-sm font-bold ${status.pill}`}>{t(status.key)}</Text>
+          <Text className="text-sm text-secText flex-1" numberOfLines={1}>
             {driver.statusNote}
           </Text>
         </View>
 
-        {driver.permitEndsInDays ? (
-          <View className="flex-row items-center gap-1.5">
-            <Icon name="error-outline" size={13} color={colors.warning} />
-            <Text className="text-sm font-semibold text-warning">
-              Permit ends in {driver.permitEndsInDays} days
+        <View className="flex-row items-center justify-between gap-2 pt-2 border-t border-secBorder">
+          <View className="flex-row items-center gap-1.5 flex-1">
+            <Icon name="directions-car" size={14} color={colors.muted} />
+            <Text className="text-sm text-secText" numberOfLines={1}>
+              {vehicle} · {driver.plate}
             </Text>
           </View>
-        ) : null}
+          {driver.permitEndsInDays ? (
+            <Badge
+              label={t("owner.permitEnds", { count: driver.permitEndsInDays })}
+              tone="amber"
+              compact
+            />
+          ) : null}
+        </View>
       </Card>
     </Ripple>
   );

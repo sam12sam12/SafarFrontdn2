@@ -3,25 +3,22 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { AppHeader } from "@/components/ui/AppHeader";
-import { Badge } from "@/components/ui/Badge";
+import { OwnerBookingCard } from "@/components/owner/OwnerBookingCard";
+import { OwnerBookingsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { FilterChips } from "@/components/ui/FilterChips";
-import { Icon } from "@/components/ui/Icon";
 import { Screen } from "@/components/ui/Screen";
 import { Segmented } from "@/components/ui/Segmented";
 import { showToast } from "@/components/ui/Toast";
-import { OwnerBookingCard } from "@/components/owner/OwnerBookingCard";
-import { OwnerBookingsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import {
   useAcceptBooking,
   useBookings,
   useDeclineBooking,
 } from "@/lib/queries/bookingsQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
-import { colors } from "@/utils/theme";
+import { formatNumber } from "@/lib/format";
 
 type Tab = "new" | "confirmed" | "cancelled";
 
@@ -32,19 +29,6 @@ export default function OwnerBookingsScreen() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
-  const TABS = [
-    { label: t("owner.tabRequests"), value: "new" as Tab },
-    { label: t("owner.tabConfirmed"), value: "confirmed" as Tab },
-    { label: t("owner.tabCancelled"), value: "cancelled" as Tab },
-  ];
-
-  const FILTERS = [
-    { label: t("owner.bookingFilterAll"), value: "all" },
-    { label: t("owner.bookingFilterVip"), value: "vip" },
-    { label: t("owner.bookingFilterShared"), value: "shared" },
-    { label: t("owner.bookingFilterCash"), value: "cash" },
-  ];
-
   const bookingsQuery = useBookings("owner");
   const { data: bookings } = bookingsQuery;
   const { data: trips } = useTrips();
@@ -53,38 +37,64 @@ export default function OwnerBookingsScreen() {
 
   const findTrip = (tripId: string) => trips?.find((trip) => trip.id === tripId);
 
+  const counts = useMemo(() => {
+    const all = bookings ?? [];
+    return {
+      new: all.filter((booking) => booking.status === "new").length,
+      confirmed: all.filter((booking) => booking.status === "confirmed").length,
+      cancelled: all.filter((booking) => booking.status === "cancelled").length,
+    };
+  }, [bookings]);
+
+  const requests = (bookings ?? []).filter((booking) => booking.status === "new");
+  const unpaid = requests.filter((booking) => booking.paymentStatus === "unpaid");
+  const unpaidTotal = unpaid.reduce((sum, booking) => sum + booking.amount, 0);
+
+  const TABS = [
+    { label: t("owner.tabNew", { count: counts.new }), value: "new" as Tab },
+    { label: `${t("owner.tabConfirmed")} (${counts.confirmed})`, value: "confirmed" as Tab },
+    { label: `${t("owner.tabCancelled")} (${counts.cancelled})`, value: "cancelled" as Tab },
+  ];
+
+  const FILTERS = [
+    { label: t("owner.bookingFilterAll"), value: "all" },
+    { label: t("owner.filterSharedSeat"), value: "shared" },
+    { label: t("owner.filterVipCar"), value: "vip" },
+    { label: t("owner.filterUnpaid"), value: "unpaid" },
+  ];
+
   const visible = useMemo(() => {
+    const needle = search.trim().toLowerCase();
     return (bookings ?? []).filter((booking) => {
       if (booking.status !== tab) return false;
       const trip = trips?.find((entry) => entry.id === booking.tripId);
       if (filter === "vip" && trip?.service !== "vip") return false;
       if (filter === "shared" && trip?.service !== "shared") return false;
-      if (filter === "cash" && booking.payment !== "cash") return false;
-      if (search.trim()) {
-        const needle = search.trim().toLowerCase();
+      if (filter === "unpaid" && booking.paymentStatus !== "unpaid") return false;
+      if (needle) {
         return (
           booking.passengerName.toLowerCase().includes(needle) ||
-          booking.code.toLowerCase().includes(needle)
+          booking.code.toLowerCase().includes(needle) ||
+          booking.phone.toLowerCase().includes(needle)
         );
       }
       return true;
     });
   }, [bookings, tab, filter, search, trips]);
 
-  const requests = (bookings ?? []).filter((booking) => booking.status === "new");
-  const paidToday = requests
-    .filter((booking) => booking.paymentStatus === "paid")
-    .reduce((sum, booking) => sum + booking.amount, 0);
+  const header = (
+    <View className="pt-3 pb-3">
+      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-primary">
+        {t("owner.brandEyebrow")}
+      </Text>
+      <Text className="text-3xl font-bold text-text mt-1">{t("owner.bookingsTitle")}</Text>
+    </View>
+  );
 
   if (bookingsQuery.isLoading) {
     return (
       <Screen contentClassName="px-4 pb-8">
-        <AppHeader
-          title={t("owner.bookingsTitle")}
-          showBack={false}
-          subtitle={t("owner.bookingsSubtitle")}
-          right={<Badge label={t("owner.agencyBadge")} tone="blue" compact />}
-        />
+        {header}
         <OwnerBookingsSkeleton />
       </Screen>
     );
@@ -92,47 +102,43 @@ export default function OwnerBookingsScreen() {
 
   return (
     <Screen contentClassName="px-4 pb-8">
-      <AppHeader
-        title={t("owner.bookingsTitle")}
-        showBack={false}
-        subtitle={t("owner.bookingsSubtitle")}
-        right={<Badge label={t("owner.agencyBadge")} tone="blue" compact />}
-      />
+      {header}
 
       <Field
         placeholder={t("owner.searchBooking")}
         value={search}
         onChangeText={setSearch}
         icon="search"
+        className="mb-3"
       />
 
-      <View className="flex-row gap-2.5 mt-3">
-        <Card className="flex-1 p-3.5 bg-warningSoft border-warning/40">
+      <View className="flex-row gap-2.5">
+        <View className="flex-1 rounded-lg bg-primary p-3.5 shadow-card shadow-shadowColor">
           <View className="flex-row items-center gap-1.5">
-            <Icon name="pending-actions" size={15} color={colors.warning} />
-            <Text className="text-2xs font-bold uppercase tracking-[1px] text-warning">
-              {t("owner.awaitingApproval")}
+            <View className="w-1.5 h-1.5 rounded-full bg-onPrimary" />
+            <Text className="text-2xs font-bold uppercase tracking-[0.8px] text-onPrimary/80">
+              {t("owner.newNeedsYou")}
             </Text>
           </View>
-          <Text className="text-2xl font-bold text-text mt-1">{requests.length}</Text>
-          <Text className="text-sm text-secText">{t("owner.newRequests")}</Text>
-        </Card>
-        <Card className="flex-1 p-3.5">
-          <View className="flex-row items-center gap-1.5">
-            <Icon name="payments" size={15} color={colors.success} />
-            <Text className="text-2xs font-bold uppercase tracking-[1px] text-success">
-              {t("owner.paidToday")}
-            </Text>
-          </View>
-          <Text className="text-2xl font-bold text-text mt-1">
-            {paidToday.toLocaleString("en-US")}
+          <Text className="text-3xl font-bold text-onPrimary mt-1">{requests.length}</Text>
+          <Text className="text-sm text-onPrimary/80 mt-1">{t("owner.acceptOrDecline")}</Text>
+        </View>
+        <Card className="flex-1 p-3.5 border-warning/50">
+          <Text className="text-2xs font-bold uppercase tracking-[0.8px] text-warning">
+            {t("owner.unpaidAtAgency")}
           </Text>
-          <Text className="text-sm text-secText">{t("owner.paidTodayHint")}</Text>
+          <View className="flex-row items-baseline gap-1 mt-1">
+            <Text className="text-3xl font-bold text-text">{formatNumber(unpaidTotal)}</Text>
+            <Text className="text-sm font-semibold text-secText">{t("common.afn")}</Text>
+          </View>
+          <Text className="text-sm text-secText mt-1">
+            {t("owner.toCollect", { count: unpaid.length })}
+          </Text>
         </Card>
       </View>
 
-      <View className="mt-4">
-        <Segmented options={TABS} value={tab} onChange={setTab} compact />
+      <View className="mt-3">
+        <Segmented options={TABS} value={tab} onChange={setTab} />
       </View>
 
       <View className="mt-3">
@@ -156,10 +162,17 @@ export default function OwnerBookingsScreen() {
               onOpen={() =>
                 router.push({ pathname: "/owner/booking/[id]", params: { id: booking.id } })
               }
+              onCall={() =>
+                showToast("info", t("owner.calling"), `${booking.passengerName} · ${booking.phone}`)
+              }
               onAccept={async () => {
                 try {
                   await accept.mutateAsync(booking.id);
-                  showToast("success", t("owner.bookingAccepted"), t("owner.bookingAcceptedSub", { code: booking.code }));
+                  showToast(
+                    "success",
+                    t("owner.bookingAccepted"),
+                    t("owner.bookingAcceptedSub", { code: booking.code }),
+                  );
                 } catch {
                   showToast("error", t("owner.couldNotAccept"), t("owner.tryAgain"));
                 }
@@ -167,7 +180,11 @@ export default function OwnerBookingsScreen() {
               onDecline={async () => {
                 try {
                   await decline.mutateAsync(booking.id);
-                  showToast("warning", t("owner.bookingDeclined"), t("owner.bookingDeclinedSub", { code: booking.code }));
+                  showToast(
+                    "warning",
+                    t("owner.bookingDeclined"),
+                    t("owner.bookingDeclinedSub", { code: booking.code }),
+                  );
                 } catch {
                   showToast("error", t("owner.couldNotDecline"), t("owner.tryAgain"));
                 }
@@ -175,11 +192,6 @@ export default function OwnerBookingsScreen() {
             />
           ))
         )}
-      </View>
-
-      <View className="flex-row items-center justify-center gap-2 mt-4">
-        <Badge label={t("owner.hesabpaySettled")} tone="green" icon="bolt" compact />
-        <Badge label={t("owner.cashAtGate")} tone="amber" icon="payments" compact />
       </View>
     </Screen>
   );

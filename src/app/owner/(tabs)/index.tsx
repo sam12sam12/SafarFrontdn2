@@ -3,43 +3,35 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
+import { OwnerLiveTripCard } from "@/components/owner/OwnerLiveTripCard";
+import { OwnerTripCard } from "@/components/owner/OwnerTripCard";
+import { OwnerTripsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
-import { OwnerTripCard } from "@/components/owner/OwnerTripCard";
-import { OwnerTripsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
+import { formatNumber, MOCK_TODAY } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
-const DAYS = [
-  { label: "Today", value: "2026-11-19", caption: "Thu 19" },
-  { label: "Fri", value: "2026-11-20", caption: "20 Nov" },
-  { label: "Sat", value: "2026-11-21", caption: "21 Nov" },
-  { label: "Mon", value: "2026-11-23", caption: "23 Nov" },
-];
+const DAYS = ["2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23"];
 
 export default function OwnerTripsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [filter, setFilter] = useState("all");
-  const [day, setDay] = useState("2026-11-19");
+  const [day, setDay] = useState(MOCK_TODAY);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const FILTERS = [
-    { label: t("owner.filterAll"), value: "all" },
-    { label: t("owner.filterOnRoad"), value: "on-road" },
-    { label: t("owner.filterBoarding"), value: "boarding" },
-    { label: t("owner.filterScheduled"), value: "scheduled" },
-    { label: t("owner.filterNeedsDriver"), value: "needs-driver" },
-  ];
-
-  const tripsQuery = useTrips();
+  const tripsQuery = useTrips({
+    status: ["scheduled", "boarding", "on-road", "full", "needs-driver", "draft"],
+  });
   const driversQuery = useDrivers();
   const { data: trips } = tripsQuery;
   const { data: drivers } = driversQuery;
@@ -49,42 +41,87 @@ export default function OwnerTripsScreen() {
     [trips, day],
   );
 
-  const visible = useMemo(
-    () => today.filter((trip) => filter === "all" || trip.status === filter),
-    [today, filter],
-  );
+  const visible = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return today.filter((trip) => {
+      if (filter === "to-kabul" && !(trip.from === "Kandahar" && trip.to === "Kabul")) return false;
+      if (filter === "to-kandahar" && !(trip.from === "Kabul" && trip.to === "Kandahar")) return false;
+      if (!needle) return true;
+      const driver = drivers?.find((item) => item.id === trip.driverId);
+      return (
+        trip.code.toLowerCase().includes(needle) ||
+        trip.from.toLowerCase().includes(needle) ||
+        trip.to.toLowerCase().includes(needle) ||
+        Boolean(driver?.name.toLowerCase().includes(needle))
+      );
+    });
+  }, [today, filter, search, drivers]);
+
+  const onRoadTrips = today.filter((trip) => trip.status === "on-road");
+  const liveTrip = onRoadTrips[0];
 
   const seatsSold = today.reduce((sum, trip) => sum + trip.seatsBooked, 0);
   const seatsTotal = today.reduce((sum, trip) => sum + trip.seatsTotal, 0);
   const revenue = today.reduce((sum, trip) => sum + trip.seatsBooked * trip.price, 0);
-  const onRoad = today.filter((trip) => trip.status === "on-road").length;
+  const carsOnRoad = onRoadTrips.length;
+  const carsTotal = drivers?.length ?? 0;
+
+  const FILTERS = [
+    { label: `${t("owner.filterAll")} · ${today.length}`, value: "all" },
+    {
+      label: `${t("common.kandahar")} → ${t("common.kabul")} · ${today.filter((trip) => trip.from === "Kandahar").length}`,
+      value: "to-kabul",
+    },
+    {
+      label: `${t("common.kabul")} → ${t("common.kandahar")} · ${today.filter((trip) => trip.from === "Kabul").length}`,
+      value: "to-kandahar",
+    },
+  ];
 
   const header = (
-    <View className="flex-row items-center justify-between py-2">
-      <View className="flex-row items-center gap-2.5">
-        <View className="w-10 h-10 rounded-base bg-primary items-center justify-center">
-          <Icon name="route" size={21} color={colors.onPrimary} />
+    <View className="pt-3 pb-3">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1">
+          <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-primary">
+            {t("owner.brandEyebrow")}
+          </Text>
+          <Text className="text-3xl font-bold text-text mt-1">{t("owner.tripsTitle")}</Text>
         </View>
-        <View>
-          <Text className="text-md font-bold text-text">Express Highway</Text>
-          <View className="flex-row items-center gap-1.5">
-            <Text className="text-2xs font-bold uppercase tracking-[1.2px] text-secText">
-              {t("owner.roleTag")}
-            </Text>
-            <Badge label={t("owner.roleBadge")} tone="blue" compact />
+        <View className="flex-row items-center gap-2">
+          <IconButton
+            icon="search"
+            accessibilityLabel={t("owner.searchTrips")}
+            variant="white"
+            size="md"
+            onPress={() => setSearchOpen((open) => !open)}
+          />
+          <View>
+            <IconButton
+              icon="notifications-none"
+              accessibilityLabel={t("driver.notifications")}
+              variant="white"
+              size="md"
+              onPress={() =>
+                showToast(
+                  "info",
+                  t("owner.newRequestsToast", { count: 4 }),
+                  t("owner.newRequestsToastSub"),
+                )
+              }
+            />
+            <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error border border-card" />
           </View>
         </View>
       </View>
-      <View className="flex-row items-center gap-2">
-        <IconButton
-          icon="notifications-none"
-          accessibilityLabel={t("driver.notifications")}
-          variant="white"
-          size="sm"
-          onPress={() => showToast("info", t("owner.newRequestsToast", { count: 4 }), t("owner.newRequestsToastSub"))}
+      {searchOpen ? (
+        <Field
+          className="mt-3"
+          placeholder={t("owner.searchTrips")}
+          value={search}
+          onChangeText={setSearch}
+          icon="search"
         />
-        <Avatar initials="SM" size="md" />
-      </View>
+      ) : null}
     </View>
   );
 
@@ -98,53 +135,104 @@ export default function OwnerTripsScreen() {
   }
 
   return (
-    <Screen contentClassName="px-4 pb-8">
+    <Screen
+      contentClassName="px-4 pb-8"
+      footer={
+        <View className="items-center py-3">
+          <Ripple
+            onPress={() => router.push("/owner/schedule")}
+            accessibilityLabel={t("owner.scheduleTripCta")}
+            className="flex-row items-center gap-2 rounded-full bg-primary px-5 py-3 shadow-button shadow-buttonShadow"
+          >
+            <Icon name="add" size={19} color={colors.onPrimary} />
+            <Text className="text-md font-bold text-onPrimary">{t("owner.scheduleTripCta")}</Text>
+          </Ripple>
+        </View>
+      }
+    >
       {header}
 
-      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-2 mb-2">
-        {t("owner.networkOverview", { day: DAYS.find((item) => item.value === day)?.label })}
-      </Text>
       <View className="flex-row gap-2.5">
-        <Card className="flex-1 p-3.5">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">{t("owner.statTrips")}</Text>
-          <Text className="text-2xl font-bold text-text mt-1">{today.length}</Text>
-          <Text className="text-sm text-secText">{t("owner.statTripsHint")}</Text>
-        </Card>
-        <Card className="flex-1 p-3.5">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">{t("owner.statSeatsSold")}</Text>
-          <Text className="text-2xl font-bold text-text mt-1">
-            {seatsSold}
-            <Text className="text-sm text-secText">/{seatsTotal}</Text>
+        <Card className="flex-1 p-3.5 gap-1">
+          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
+            {t("owner.tripsToday")}
           </Text>
-          <Text className="text-sm text-secText">{t("owner.statSeatsSoldHint")}</Text>
+          <Text className="text-2xl font-bold text-text">{today.length}</Text>
+        </Card>
+        <Card className="flex-1 p-3.5 gap-1">
+          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
+            {t("owner.statSeatsSold")}
+          </Text>
+          <View className="flex-row items-baseline gap-1">
+            <Text className="text-2xl font-bold text-text">{seatsSold}</Text>
+            <Text className="text-sm font-semibold text-secText">/ {seatsTotal}</Text>
+          </View>
         </Card>
       </View>
       <View className="flex-row gap-2.5 mt-2.5">
-        <Card className="flex-1 p-3.5">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">{t("owner.statRevenue")}</Text>
-          <Text className="text-2xl font-bold text-success mt-1">
-            {revenue.toLocaleString("en-US")}
+        <Card className="flex-1 p-3.5 gap-1">
+          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
+            {t("owner.carsOnRoad")}
           </Text>
-          <Text className="text-sm text-secText">{t("owner.statRevenueHint")}</Text>
+          <View className="flex-row items-baseline gap-1">
+            <Text className="text-2xl font-bold text-text">{carsOnRoad}</Text>
+            <Text className="text-sm font-semibold text-secText">/ {carsTotal}</Text>
+          </View>
         </Card>
-        <Card className="flex-1 p-3.5">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">{t("owner.statOnRoad")}</Text>
-          <Text className="text-2xl font-bold text-primary mt-1">{onRoad}</Text>
-          <Text className="text-sm text-secText">{t("owner.statOnRoadHint")}</Text>
+        <Card className="flex-1 p-3.5 gap-1">
+          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
+            {t("owner.revenueToday")}
+          </Text>
+          <View className="flex-row items-baseline gap-1">
+            <Text className="text-2xl font-bold text-text">{formatNumber(revenue)}</Text>
+            <Text className="text-2xs font-semibold text-secText">{t("common.afn")}</Text>
+          </View>
         </Card>
       </View>
 
-      <View className="flex-row gap-2 mt-4">
-        {DAYS.map((item) => (
-          <FilterChipsSingle
-            key={item.value}
-            active={day === item.value}
-            label={item.label}
-            caption={item.caption}
-            onPress={() => setDay(item.value)}
-          />
-        ))}
+      <View className="flex-row gap-1.5 mt-4">
+        {DAYS.map((item) => {
+          const active = day === item;
+          const date = new Date(`${item}T00:00:00`);
+          const weekday = new Intl.DateTimeFormat(
+            i18n.language === "ps" ? "ps-AF" : i18n.language === "fa" ? "fa-AF" : "en-US",
+            { weekday: "short" },
+          ).format(date);
+          return (
+            <Ripple
+              key={item}
+              onPress={() => setDay(item)}
+              accessibilityLabel={`${weekday} ${date.getDate()}`}
+              accessibilityState={{ selected: active }}
+              className={`flex-1 items-center rounded-base border py-2 ${
+                active ? "bg-primary border-primary" : "bg-card border-border"
+              }`}
+            >
+              <Text
+                className={`text-2xs font-bold uppercase ${
+                  active ? "text-onPrimary/80" : "text-muted"
+                }`}
+              >
+                {weekday}
+              </Text>
+              <Text className={`text-md font-bold mt-0.5 ${active ? "text-onPrimary" : "text-text"}`}>
+                {date.getDate()}
+              </Text>
+            </Ripple>
+          );
+        })}
       </View>
+
+      {liveTrip ? (
+        <View className="mt-3">
+          <OwnerLiveTripCard
+            trip={liveTrip}
+            driver={drivers?.find((driver) => driver.id === liveTrip.driverId)}
+            onPress={() => router.push({ pathname: "/owner/trip/[id]", params: { id: liveTrip.id } })}
+            onCall={() => showToast("info", t("owner.calling"), t("owner.callDriver"))}
+          />
+        </View>
+      ) : null}
 
       <View className="mt-3">
         <FilterChips options={FILTERS} value={filter} onChange={setFilter} />
@@ -162,66 +250,11 @@ export default function OwnerTripsScreen() {
               trip={trip}
               driver={drivers?.find((driver) => driver.id === trip.driverId)}
               onPress={() => router.push({ pathname: "/owner/trip/[id]", params: { id: trip.id } })}
+              onAssign={() => router.push({ pathname: "/owner/trip/[id]", params: { id: trip.id } })}
             />
           ))
         )}
       </View>
-
-      <View className="flex-row gap-2.5 mt-4">
-        <Card className="flex-1 flex-row items-center gap-2 py-3">
-          <Icon name="gps-fixed" size={16} color={colors.primary} />
-          <Text className="text-sm text-secText flex-1">{t("owner.gpsActive")}</Text>
-        </Card>
-        <Card className="flex-1 flex-row items-center gap-2 py-3">
-          <Icon name="verified" size={16} color={colors.success} />
-          <Text className="text-sm text-secText flex-1">{t("owner.permitsValid")}</Text>
-        </Card>
-      </View>
-
-      <View className="flex-row items-center justify-between mt-4 rounded-lg bg-primary px-4 py-3 shadow-button shadow-buttonShadow">
-        <View className="flex-row items-center gap-2.5">
-          <Icon name="add-circle-outline" size={22} color={colors.onPrimary} />
-          <View>
-            <Text className="text-base-lg font-bold text-onPrimary">{t("owner.scheduleTrip")}</Text>
-            <Text className="text-sm text-onPrimary/70">{t("owner.scheduleTripSub")}</Text>
-          </View>
-        </View>
-        <IconButton
-          icon="arrow-forward"
-          accessibilityLabel={t("owner.scheduleTrip")}
-          variant="primary"
-          size="sm"
-          onPress={() => router.push("/owner/schedule")}
-          className="bg-card/20"
-        />
-      </View>
     </Screen>
-  );
-}
-
-function FilterChipsSingle({
-  active,
-  label,
-  caption,
-  onPress,
-}: {
-  active: boolean;
-  label: string;
-  caption: string;
-  onPress: () => void;
-}) {
-  return (
-    <Ripple
-      onPress={onPress}
-      accessibilityLabel={`${label} ${caption}`}
-      className={`flex-1 rounded-base border px-2 py-2 items-center ${
-        active ? "bg-primary border-primary" : "bg-card border-border"
-      }`}
-    >
-      <Text className={`text-base-lg font-bold ${active ? "text-onPrimary" : "text-text"}`}>
-        {label}
-      </Text>
-      <Text className={`text-2xs ${active ? "text-onPrimary/70" : "text-secText"}`}>{caption}</Text>
-    </Ripple>
   );
 }

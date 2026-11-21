@@ -6,6 +6,8 @@ import { queryKeys, type TripFilter } from "./queryKeys";
 
 async function fetchTrips(filter: TripFilter = {}): Promise<Trip[]> {
   const items = db.trips.filter((trip) => {
+    // Drafts stay out of passenger search until the owner publishes them.
+    if (!filter.status?.length && trip.status === "draft") return false;
     if (filter.from && trip.from !== filter.from) return false;
     if (filter.to && trip.to !== filter.to) return false;
     if (filter.service && trip.service !== filter.service) return false;
@@ -57,6 +59,9 @@ export type ScheduleTripInput = {
   driverId?: string;
   boardingPoint: string;
   dropOffPoint: string;
+  draft?: boolean;
+  note?: string;
+  restStop?: boolean;
 };
 
 export function useScheduleTrip() {
@@ -85,9 +90,10 @@ export function useScheduleTrip() {
         seatsBooked: 0,
         driverId: input.driverId,
         vehiclePlate: driver?.plate ?? "—",
-        status: input.driverId ? "scheduled" : "needs-driver",
+        status: input.draft ? "draft" : input.driverId ? "scheduled" : "needs-driver",
         boardingPoint: input.boardingPoint,
         dropOffPoint: input.dropOffPoint,
+        dispatchNote: input.note,
       };
       db.trips.unshift(trip);
       return trip;

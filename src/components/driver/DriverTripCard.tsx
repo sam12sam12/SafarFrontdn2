@@ -21,6 +21,7 @@ const STATUS_TONE = {
   scheduled: "slate",
   full: "violet",
   "needs-driver": "amber",
+  draft: "slate",
   completed: "slate",
 } as const;
 

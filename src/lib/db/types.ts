@@ -10,6 +10,7 @@ export type TripStatus =
   | "on-road"
   | "full"
   | "needs-driver"
+  | "draft"
   | "completed";
 
 export type DriverStatus = "on-road" | "trip-today" | "free" | "rest";
