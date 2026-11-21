@@ -1,0 +1,43 @@
+@theme {
+  /* Design system is tuned to a 360px reference frame (~0.94x of the
+     original 390px comps), so the same layouts stay balanced on 360-390. */
+
+  /* SPACING (4pt grid) */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 7.5px;
+  --spacing-3: 11px;
+  --spacing-4: 15px;
+  --spacing-5: 18.5px;
+  --spacing-6: 22px;
+  --spacing-7: 26px;
+  --spacing-8: 30px;
+  --spacing-10: 37px;
+
+  /* TYPOGRAPHY */
+  --text-2xs: 8.5px;
+  --text-xs: 9.5px;
+  --text-sm: 10.5px;
+  --text-base: 12px;
+  --text-base-lg: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18.5px;
+  --text-2xl: 22px;
+  --text-3xl: 26px;
+  --text-4xl: 30px;
+
+  /* RADIUS */
+  --radius-sm: 7px;
+  --radius-md: 11px;
+  --radius-base: 13px;
+  --radius-lg: 17px;
+  --radius-xl: 20px;
+  --radius-2xl: 26px;
+
+  /* SHADOW */
+  --shadow-sm: 0 1px 2px var(--color-shadowColor);
+  --shadow-card: 0 6px 18px var(--color-shadowColor);
+  --shadow-raised: 0 12px 32px var(--color-shadowStrong);
+  --shadow-button: 0 8px 20px var(--color-buttonShadow);
+}

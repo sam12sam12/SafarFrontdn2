@@ -1,0 +1,95 @@
+@layer theme {
+  :root {
+    @variant light {
+      /* Surfaces */
+      --color-mainBack: oklch(0.976 0.006 250); /* #F5F8FD */
+      --color-card: oklch(1 0 0); /* #FFFFFF */
+      --color-elevated: oklch(0.988 0.003 250); /* #FAFCFF */
+
+      /* Text */
+      --color-text: oklch(0.19 0.02 258); /* #0B1220 */
+      --color-secText: oklch(0.55 0.03 257); /* #64748B */
+      --color-muted: oklch(0.71 0.025 257); /* #94A3B8 */
+      --color-placeholder: oklch(0.75 0.02 257); /* #A8B3C4 */
+
+      /* Brand */
+      --color-primary: oklch(0.49 0.21 264); /* #1D4ED8 */
+      --color-primaryDark: oklch(0.42 0.19 264); /* #1E3A8A */
+      --color-primaryLight: oklch(0.65 0.17 255); /* #3B82F6 */
+      --color-primarySoft: oklch(0.955 0.022 262); /* #EAF1FF */
+      --color-primaryBorder: oklch(0.88 0.05 260); /* #CBDCFB */
+
+      /* Lines */
+      --color-border: oklch(0.925 0.011 255); /* #E5ECF6 */
+      --color-secBorder: oklch(0.96 0.008 255); /* #F1F5FB */
+      --color-disable: oklch(0.945 0.008 255); /* #EDF1F8 */
+
+      /* Semantic */
+      --color-success: oklch(0.69 0.15 162); /* #10B981 */
+      --color-successSoft: oklch(0.965 0.03 162); /* #E8F9F1 */
+      --color-warning: oklch(0.77 0.16 70); /* #F59E0B */
+      --color-warningSoft: oklch(0.972 0.03 80); /* #FEF6E7 */
+      --color-error: oklch(0.63 0.21 25); /* #EF4444 */
+      --color-errorSoft: oklch(0.965 0.02 25); /* #FDECEC */
+      --color-teal: oklch(0.47 0.08 180); /* #0F766E */
+      --color-tealSoft: oklch(0.955 0.02 180); /* #E6F4F1 */
+      --color-violet: oklch(0.55 0.2 285); /* #6366F1 */
+      --color-violetSoft: oklch(0.955 0.025 285); /* #EEF0FF */
+      --color-icon: oklch(0.19 0.02 258);
+
+      /* Effects */
+      --color-shadowColor: oklch(0.42 0.06 260 / 8%);
+      --color-shadowStrong: oklch(0.28 0.09 262 / 16%);
+      --color-buttonShadow: oklch(0.49 0.21 264 / 30%);
+      --color-overlay: oklch(0.19 0.02 258 / 45%);
+      --color-onPrimary: oklch(1 0 0);
+      --color-skeleton: oklch(0.93 0.01 255);
+    }
+
+    @variant dark {
+      /* Surfaces */
+      --color-mainBack: oklch(0.16 0.02 260); /* #0B1220 */
+      --color-card: oklch(0.215 0.025 260); /* #131C2E */
+      --color-elevated: oklch(0.245 0.026 260); /* #172135 */
+
+      /* Text */
+      --color-text: oklch(0.973 0.006 250); /* #F5F8FD */
+      --color-secText: oklch(0.77 0.02 258); /* #A7B4C9 */
+      --color-muted: oklch(0.63 0.025 258); /* #7C8BA1 */
+      --color-placeholder: oklch(0.56 0.025 258); /* #6B7A90 */
+
+      /* Brand */
+      --color-primary: oklch(0.63 0.19 258); /* #3B82F6 */
+      --color-primaryDark: oklch(0.45 0.18 263); /* #1E40AF */
+      --color-primaryLight: oklch(0.72 0.14 252); /* #60A5FA */
+      --color-primarySoft: oklch(0.29 0.06 260); /* #172B4D */
+      --color-primaryBorder: oklch(0.36 0.07 260); /* #26406B */
+
+      /* Lines */
+      --color-border: oklch(0.31 0.03 260); /* #243147 */
+      --color-secBorder: oklch(0.27 0.028 260); /* #1C2739 */
+      --color-disable: oklch(0.29 0.028 260); /* #1E293B */
+
+      /* Semantic */
+      --color-success: oklch(0.78 0.14 165); /* #34D399 */
+      --color-successSoft: oklch(0.28 0.05 165); /* #0F2E25 */
+      --color-warning: oklch(0.83 0.14 80); /* #FBBF24 */
+      --color-warningSoft: oklch(0.3 0.05 75); /* #3A2A0E */
+      --color-error: oklch(0.72 0.16 22); /* #F87171 */
+      --color-errorSoft: oklch(0.29 0.06 22); /* #3A1A1E */
+      --color-teal: oklch(0.8 0.11 180); /* #2DD4BF */
+      --color-tealSoft: oklch(0.28 0.04 180); /* #0F2E2C */
+      --color-violet: oklch(0.73 0.14 285); /* #818CF8 */
+      --color-violetSoft: oklch(0.29 0.06 285); /* #232447 */
+      --color-icon: oklch(0.973 0.006 250);
+
+      /* Effects */
+      --color-shadowColor: oklch(0 0 0 / 35%);
+      --color-shadowStrong: oklch(0 0 0 / 55%);
+      --color-buttonShadow: oklch(0.63 0.19 258 / 35%);
+      --color-overlay: oklch(0 0 0 / 62%);
+      --color-onPrimary: oklch(1 0 0);
+      --color-skeleton: oklch(0.27 0.025 260);
+    }
+  }
+}

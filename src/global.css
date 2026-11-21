@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "uniwind";
+
+@import "./utils/UniwindTokens/tokens.css";
+@import "./utils/UniwindTokens/colors.css";
