@@ -21,32 +21,13 @@ function RowSkeleton() {
 
 export function OwnerTripsSkeleton() {
   return (
-    <View className="px-4 gap-3">
-      <View className="flex-row items-center justify-between py-2">
-        <View className="flex-row items-center gap-2.5">
-          <Skeleton className="w-10 h-10 rounded-base" />
-          <View className="gap-1.5">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-24" />
-          </View>
-        </View>
-        <Skeleton className="w-9 h-9 rounded-full" />
+    <View className="gap-3">
+      <View className="flex-row gap-2">
+        <Skeleton className="h-9 w-32 rounded-full" />
+        <Skeleton className="h-9 w-28 rounded-full" />
+        <Skeleton className="h-9 w-24 rounded-full" />
       </View>
-      <View className="flex-row gap-2.5">
-        <Skeleton className="h-20 flex-1 rounded-lg" />
-        <Skeleton className="h-20 flex-1 rounded-lg" />
-      </View>
-      <View className="flex-row gap-2.5">
-        <Skeleton className="h-20 flex-1 rounded-lg" />
-        <Skeleton className="h-20 flex-1 rounded-lg" />
-      </View>
-      <View className="flex-row gap-2 mt-1">
-        {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-12 flex-1 rounded-base" />
-        ))}
-      </View>
-      <Skeleton className="h-9 w-full rounded-full" />
-      <TripCardSkeleton rows={2} />
+      <TripCardSkeleton rows={3} />
     </View>
   );
 }

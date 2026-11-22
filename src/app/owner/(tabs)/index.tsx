@@ -1,32 +1,59 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 import { OwnerLiveTripCard } from "@/components/owner/OwnerLiveTripCard";
 import { OwnerTripCard } from "@/components/owner/OwnerTripCard";
+import {
+  KindFilterSheet,
+  RouteFilterSheet,
+  StatusFilterSheet,
+  type KindFilter,
+  type RouteFilter,
+  type StatusFilter,
+} from "@/components/owner/OwnerTripFilterSheets";
 import { OwnerTripsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import { Card } from "@/components/ui/Card";
+import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import { Field } from "@/components/ui/Field";
-import { FilterChips } from "@/components/ui/FilterChips";
-import { Icon } from "@/components/ui/Icon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
-import { DEMO_TODAY, formatDayNumber, formatWeekday } from "@/lib/dates";
-import { formatNumber } from "@/lib/format";
+import { DEMO_TODAY, formatRelativeDay } from "@/lib/dates";
+import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
 
-const DAYS = ["2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23"];
+const KIND_LABEL_KEY: Record<Exclude<KindFilter, "all">, string> = {
+  shared: "owner.bookingFilterShared",
+  vip: "owner.bookingFilterVip",
+};
+
+const STATUS_LABEL_KEY: Record<Exclude<StatusFilter, "all">, string> = {
+  "on-road": "owner.filterOnRoad",
+  boarding: "owner.filterBoarding",
+  scheduled: "owner.filterScheduled",
+  full: "owner.filterFull",
+  "needs-driver": "owner.filterNeedsDriver",
+};
 
 export default function OwnerTripsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const [filter, setFilter] = useState("all");
+
   const [day, setDay] = useState(DEMO_TODAY);
+  const [routeFilter, setRouteFilter] = useState<RouteFilter>("all");
+  const [kindFilter, setKindFilter] = useState<KindFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  const [dateSheet, setDateSheet] = useState(false);
+  const [routeSheet, setRouteSheet] = useState(false);
+  const [kindSheet, setKindSheet] = useState(false);
+  const [statusSheet, setStatusSheet] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -37,16 +64,19 @@ export default function OwnerTripsScreen() {
   const { data: trips } = tripsQuery;
   const { data: drivers } = driversQuery;
 
-  const today = useMemo(
+  const onDay = useMemo(
     () => (trips ?? []).filter((trip) => trip.date === day && trip.status !== "completed"),
     [trips, day],
   );
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    return today.filter((trip) => {
-      if (filter === "to-kabul" && !(trip.from === "Kandahar" && trip.to === "Kabul")) return false;
-      if (filter === "to-kandahar" && !(trip.from === "Kabul" && trip.to === "Kandahar")) return false;
+    return onDay.filter((trip) => {
+      if (routeFilter === "to-kabul" && !(trip.from === "Kandahar" && trip.to === "Kabul")) return false;
+      if (routeFilter === "to-kandahar" && !(trip.from === "Kabul" && trip.to === "Kandahar")) return false;
+      if (kindFilter !== "all" && trip.service !== kindFilter) return false;
+      if (statusFilter !== "all" && trip.status !== statusFilter) return false;
+
       if (!needle) return true;
       const driver = drivers?.find((item) => item.id === trip.driverId);
       return (
@@ -56,28 +86,22 @@ export default function OwnerTripsScreen() {
         Boolean(driver?.name.toLowerCase().includes(needle))
       );
     });
-  }, [today, filter, search, drivers]);
+  }, [onDay, routeFilter, kindFilter, statusFilter, search, drivers]);
 
-  const onRoadTrips = today.filter((trip) => trip.status === "on-road");
-  const liveTrip = onRoadTrips[0];
+  const liveTrip = onDay.find((trip) => trip.status === "on-road");
 
-  const seatsSold = today.reduce((sum, trip) => sum + trip.seatsBooked, 0);
-  const seatsTotal = today.reduce((sum, trip) => sum + trip.seatsTotal, 0);
-  const revenue = today.reduce((sum, trip) => sum + trip.seatsBooked * trip.price, 0);
-  const carsOnRoad = onRoadTrips.length;
-  const carsTotal = drivers?.length ?? 0;
+  const routeChipLabel =
+    routeFilter === "all"
+      ? t("owner.filterRoute")
+      : routeFilter === "to-kabul"
+        ? `${t("common.kandahar")} → ${t("common.kabul")}`
+        : `${t("common.kabul")} → ${t("common.kandahar")}`;
 
-  const FILTERS = [
-    { label: `${t("owner.filterAll")} · ${today.length}`, value: "all" },
-    {
-      label: `${t("common.kandahar")} → ${t("common.kabul")} · ${today.filter((trip) => trip.from === "Kandahar").length}`,
-      value: "to-kabul",
-    },
-    {
-      label: `${t("common.kabul")} → ${t("common.kandahar")} · ${today.filter((trip) => trip.from === "Kabul").length}`,
-      value: "to-kandahar",
-    },
-  ];
+  const kindChipLabel =
+    kindFilter === "all" ? t("owner.filterKind") : t(KIND_LABEL_KEY[kindFilter]);
+
+  const statusChipLabel =
+    statusFilter === "all" ? t("owner.filterStatus") : t(STATUS_LABEL_KEY[statusFilter]);
 
   const header = (
     <View className="pt-3 pb-3">
@@ -153,72 +177,37 @@ export default function OwnerTripsScreen() {
     >
       {header}
 
-      <View className="flex-row gap-2.5">
-        <Card className="flex-1 p-3.5 gap-1">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
-            {t("owner.tripsToday")}
-          </Text>
-          <Text className="text-2xl font-bold text-text">{today.length}</Text>
-        </Card>
-        <Card className="flex-1 p-3.5 gap-1">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
-            {t("owner.statSeatsSold")}
-          </Text>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="text-2xl font-bold text-text">{seatsSold}</Text>
-            <Text className="text-sm font-semibold text-secText">/ {seatsTotal}</Text>
-          </View>
-        </Card>
-      </View>
-      <View className="flex-row gap-2.5 mt-2.5">
-        <Card className="flex-1 p-3.5 gap-1">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
-            {t("owner.carsOnRoad")}
-          </Text>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="text-2xl font-bold text-text">{carsOnRoad}</Text>
-            <Text className="text-sm font-semibold text-secText">/ {carsTotal}</Text>
-          </View>
-        </Card>
-        <Card className="flex-1 p-3.5 gap-1">
-          <Text className="text-2xs font-bold uppercase tracking-[1px] text-muted">
-            {t("owner.revenueToday")}
-          </Text>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="text-2xl font-bold text-text">{formatNumber(revenue)}</Text>
-            <Text className="text-2xs font-semibold text-secText">{t("common.afn")}</Text>
-          </View>
-        </Card>
-      </View>
-
-      <View className="flex-row gap-1.5 mt-4">
-        {DAYS.map((item) => {
-          const active = day === item;
-          const weekday = formatWeekday(item, i18n.language);
-          return (
-            <Ripple
-              key={item}
-              onPress={() => setDay(item)}
-              accessibilityLabel={`${weekday} ${formatDayNumber(item, i18n.language)}`}
-              accessibilityState={{ selected: active }}
-              className={`flex-1 items-center rounded-base border py-2 ${
-                active ? "bg-primary border-primary" : "bg-card border-border"
-              }`}
-            >
-              <Text
-                className={`text-2xs font-bold uppercase ${
-                  active ? "text-onPrimary/80" : "text-muted"
-                }`}
-              >
-                {weekday}
-              </Text>
-              <Text className={`text-md font-bold mt-0.5 ${active ? "text-onPrimary" : "text-text"}`}>
-                {formatDayNumber(item, i18n.language)}
-              </Text>
-            </Ripple>
-          );
-        })}
-      </View>
+      {/* Filters — date, route and status are menus, not inline grids */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerClassName="gap-2 pr-4 items-center"
+      >
+        <FilterChip
+          icon="calendar-today"
+          label={formatRelativeDay(day, i18n.language)}
+          active
+          onPress={() => setDateSheet(true)}
+        />
+        <FilterChip
+          icon="alt-route"
+          label={routeChipLabel}
+          active={routeFilter !== "all"}
+          onPress={() => setRouteSheet(true)}
+        />
+        <FilterChip
+          icon="sell"
+          label={kindChipLabel}
+          active={kindFilter !== "all"}
+          onPress={() => setKindSheet(true)}
+        />
+        <FilterChip
+          icon="filter-list"
+          label={statusChipLabel}
+          active={statusFilter !== "all"}
+          onPress={() => setStatusSheet(true)}
+        />
+      </ScrollView>
 
       {liveTrip ? (
         <View className="mt-3">
@@ -230,10 +219,6 @@ export default function OwnerTripsScreen() {
           />
         </View>
       ) : null}
-
-      <View className="mt-3">
-        <FilterChips options={FILTERS} value={filter} onChange={setFilter} />
-      </View>
 
       <View className="gap-3 mt-3">
         {visible.length === 0 ? (
@@ -252,6 +237,66 @@ export default function OwnerTripsScreen() {
           ))
         )}
       </View>
+
+      <DatePickerSheet
+        visible={dateSheet}
+        onClose={() => setDateSheet(false)}
+        value={day}
+        onChange={setDay}
+        minDate="2026-11-01"
+      />
+      <RouteFilterSheet
+        visible={routeSheet}
+        onClose={() => setRouteSheet(false)}
+        value={routeFilter}
+        onSelect={setRouteFilter}
+      />
+      <KindFilterSheet
+        visible={kindSheet}
+        onClose={() => setKindSheet(false)}
+        value={kindFilter}
+        onSelect={setKindFilter}
+      />
+      <StatusFilterSheet
+        visible={statusSheet}
+        onClose={() => setStatusSheet(false)}
+        value={statusFilter}
+        onSelect={setStatusFilter}
+      />
     </Screen>
+  );
+}
+
+function FilterChip({
+  icon,
+  label,
+  active,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  active?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Ripple
+      onPress={onPress}
+      accessibilityLabel={label}
+      className={cn(
+        "flex-row items-center gap-1.5 rounded-full border px-3.5 py-2",
+        active ? "bg-primary border-primary" : "bg-card border-border",
+      )}
+    >
+      <Icon name={icon} size={14} color={active ? colors.onPrimary : colors.secText} />
+      <Text
+        className={cn(
+          "text-base-lg font-semibold whitespace-nowrap",
+          active ? "text-onPrimary" : "text-secText",
+        )}
+      >
+        {label}
+      </Text>
+      <Icon name="expand-more" size={16} color={active ? colors.onPrimary : colors.secText} />
+    </Ripple>
   );
 }

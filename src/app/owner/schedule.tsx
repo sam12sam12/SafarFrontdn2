@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { Card } from "@/components/ui/Card";
+import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
@@ -13,13 +14,11 @@ import { showToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
 import type { City, ServiceType } from "@/lib/db/types";
 import { useDrivers } from "@/lib/queries/driversQueries";
-import { formatDayNumber, formatTripDate, formatWeekday } from "@/lib/dates";
+import { DEMO_TODAY, formatLongDate, formatTripDate } from "@/lib/dates";
 import { useScheduleTrip } from "@/lib/queries/tripsQueries";
 import { dismissLoading, showLoading } from "@/Stores/useLoadingStore";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
-
-const DAYS = ["2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23"];
 
 const TIMES = [
   { time: "05:00", period: "AM" as const },
@@ -39,7 +38,8 @@ export default function ScheduleTripScreen() {
   const [from, setFrom] = useState<City>("Kandahar");
   const [to, setTo] = useState<City>("Kabul");
   const [service, setService] = useState<ServiceType>("shared");
-  const [date, setDate] = useState("2026-11-19");
+  const [date, setDate] = useState(DEMO_TODAY);
+  const [dateSheet, setDateSheet] = useState(false);
   const [timeIndex, setTimeIndex] = useState(1);
   const [price, setPrice] = useState("1200");
   const [extra, setExtra] = useState("150");
@@ -151,36 +151,17 @@ export default function ScheduleTripScreen() {
           </View>
 
           <Text className="text-base-lg font-semibold text-text">{t("owner.dateLabel")}</Text>
-          <View className="flex-row gap-1.5">
-            {DAYS.map((item) => {
-              const active = date === item;
-              const weekday = formatWeekday(item, i18n.language);
-              return (
-                <Ripple
-                  key={item}
-                  onPress={() => setDate(item)}
-                  accessibilityLabel={`${weekday} ${formatDayNumber(item, i18n.language)}`}
-                  accessibilityState={{ selected: active }}
-                  className={cn(
-                    "flex-1 items-center rounded-base border py-2",
-                    active ? "bg-primary border-primary" : "bg-card border-border",
-                  )}
-                >
-                  <Text
-                    className={cn(
-                      "text-2xs font-bold uppercase",
-                      active ? "text-onPrimary/80" : "text-muted",
-                    )}
-                  >
-                    {weekday}
-                  </Text>
-                  <Text className={cn("text-md font-bold mt-0.5", active ? "text-onPrimary" : "text-text")}>
-                    {formatDayNumber(item, i18n.language)}
-                  </Text>
-                </Ripple>
-              );
-            })}
-          </View>
+          <Ripple
+            onPress={() => setDateSheet(true)}
+            accessibilityLabel={t("common.selectDate")}
+            className="flex-row items-center gap-3 rounded-base border border-border bg-elevated px-3 py-3"
+          >
+            <Icon name="calendar-today" size={18} color={colors.primary} />
+            <Text className="flex-1 text-base-lg font-semibold text-text">
+              {formatLongDate(date, i18n.language)}
+            </Text>
+            <Icon name="expand-more" size={20} color={colors.muted} />
+          </Ripple>
 
           <Text className="text-base-lg font-semibold text-text">{t("owner.departureTime")}</Text>
           <View className="flex-row flex-wrap gap-2">
@@ -421,6 +402,13 @@ export default function ScheduleTripScreen() {
           onPress={submit}
         />
       </View>
+
+      <DatePickerSheet
+        visible={dateSheet}
+        onClose={() => setDateSheet(false)}
+        value={date}
+        onChange={setDate}
+      />
     </Screen>
   );
 }

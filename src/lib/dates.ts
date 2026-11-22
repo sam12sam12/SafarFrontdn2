@@ -25,9 +25,12 @@ export const DEMO_TODAY = "2026-11-19";
 /** Frozen "now" used by relative booking timestamps. */
 export const DEMO_NOW = `${DEMO_TODAY}T18:00:00Z`;
 
-/* Pashto is not shipped with dayjs, so the locale is registered here. Month
- * and weekday names are the Gregorian ones used in Afghan Pashto. */
-const PS_WEEKDAYS = ["يونۍ", "دونۍ", "درېنۍ", "څلرنۍ", "پينځنۍ", "جمعه", "اونۍ"];
+/* Pashto is not shipped with dayjs, so the locale is registered here.
+ * Weekday names deliberately use the Dari (Persian) forms: in Afghanistan the
+ * Dari weekday names are the ones commonly spoken and written in Pashto too, so
+ * Dari and Pashto render identical day names. Month names stay Pashto. */
+const DARI_WEEKDAYS = ["یک‌شنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
+const DARI_WEEKDAYS_MIN = ["ی", "د", "س", "چ", "پ", "ج", "ش"];
 const PS_MONTHS = [
   "جنوري",
   "فبروري",
@@ -45,9 +48,9 @@ const PS_MONTHS = [
 
 dayjs.locale({
   name: "ps",
-  weekdays: PS_WEEKDAYS,
-  weekdaysShort: PS_WEEKDAYS,
-  weekdaysMin: ["ي", "د", "د", "څ", "پ", "ج", "ا"],
+  weekdays: DARI_WEEKDAYS,
+  weekdaysShort: DARI_WEEKDAYS,
+  weekdaysMin: DARI_WEEKDAYS_MIN,
   months: PS_MONTHS,
   monthsShort: PS_MONTHS,
   weekStart: 6,
