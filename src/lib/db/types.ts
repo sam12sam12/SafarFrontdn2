@@ -79,7 +79,6 @@ export type Trip = {
   to: City;
   /** ISO date, e.g. 2026-11-19 */
   date: string;
-  dateLabel: string;
   departTime: string;
   departPeriod: "AM" | "PM";
   arriveTime: string;
@@ -119,7 +118,8 @@ export type Booking = {
   payment: PaymentMethod;
   paymentStatus: "paid" | "unpaid";
   status: BookingStatus;
-  createdAtLabel: string;
+  /** ISO datetime the booking was created — rendered relative per language. */
+  createdAt: string;
   reference?: string;
   thirdTrip?: boolean;
   kids?: string;

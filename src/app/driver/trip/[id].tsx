@@ -15,9 +15,10 @@ import { showToast } from "@/components/ui/Toast";
 import { useDriver } from "@/lib/queries/driversQueries";
 import { useSeatMap, useTrip } from "@/lib/queries/tripsQueries";
 import { colors } from "@/utils/theme";
+import { formatTripDate } from "@/lib/dates";
 
 export default function DriverTripManifestScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripQuery = useTrip(id);
   const seatsQuery = useSeatMap(id);
@@ -90,7 +91,7 @@ export default function DriverTripManifestScreen() {
     >
       <AppHeader
         title={t("driver.tripDetails")}
-        subtitle={trip ? `#${trip.code} · ${trip.dateLabel}` : undefined}
+        subtitle={trip ? `#${trip.code} · ${formatTripDate(trip.date, i18n.language)}` : undefined}
         right={<Badge label={t("driver.upcoming")} tone="blue" compact />}
       />
 

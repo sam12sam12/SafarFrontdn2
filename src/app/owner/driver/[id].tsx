@@ -15,6 +15,7 @@ import { OwnerDriverProfileSkeleton } from "@/components/skeletons/OwnerSkeleton
 import { useDriver } from "@/lib/queries/driversQueries";
 import { useOwnerStats, useDriverStats } from "@/lib/queries/statsQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
+import { formatDayNumber, formatWeekday } from "@/lib/dates";
 import { formatNumber } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
@@ -223,12 +224,7 @@ export default function OwnerDriverProfileScreen() {
             </Ripple>
           </View>
           {nextTrips.map((trip) => {
-            const date = new Date(`${trip.date}T00:00:00`);
-            const weekday = new Intl.DateTimeFormat(
-              i18n.language === "ps" ? "ps-AF" : i18n.language === "fa" ? "fa-AF" : "en-US",
-              { weekday: "short" },
-            )
-              .format(date)
+            const weekday = formatWeekday(trip.date, i18n.language)
               .toUpperCase();
             return (
               <Ripple
@@ -239,7 +235,7 @@ export default function OwnerDriverProfileScreen() {
               >
                 <View className="w-10 items-center rounded-sm bg-elevated py-1">
                   <Text className="text-2xs font-semibold text-muted">{weekday}</Text>
-                  <Text className="text-base-lg font-bold text-text">{date.getDate()}</Text>
+                  <Text className="text-base-lg font-bold text-text">{formatDayNumber(trip.date, i18n.language)}</Text>
                 </View>
                 <View className="flex-1">
                   <Text className="text-base-lg font-semibold text-text">

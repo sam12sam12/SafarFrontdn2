@@ -2,6 +2,7 @@ import { View } from "react-native";
 
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TripCardSkeleton } from "./TripCardSkeleton";
 
 export function DriverTripsSkeleton() {
   return (
@@ -23,20 +24,8 @@ export function DriverTripsSkeleton() {
       <Skeleton className="h-[292px] w-full rounded-xl mt-4" />
       <Skeleton className="h-11 w-full rounded-full mt-3" />
 
-      <View className="gap-3 mt-3">
-        {[0, 1, 2].map((index) => (
-          <Card key={index} className="flex-row gap-3 p-3">
-            <Skeleton className="w-12 h-14 rounded-md" />
-            <View className="flex-1 gap-2">
-              <View className="flex-row justify-between">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </View>
-              <Skeleton className="h-3 w-36" />
-              <Skeleton className="h-1.5 w-full rounded-full" />
-            </View>
-          </Card>
-        ))}
+      <View className="mt-3">
+        <TripCardSkeleton rows={2} />
       </View>
     </View>
   );

@@ -16,7 +16,8 @@ import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
-import { formatNumber, MOCK_TODAY } from "@/lib/format";
+import { DEMO_TODAY, formatDayNumber, formatWeekday } from "@/lib/dates";
+import { formatNumber } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
 const DAYS = ["2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23"];
@@ -25,7 +26,7 @@ export default function OwnerTripsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const [filter, setFilter] = useState("all");
-  const [day, setDay] = useState(MOCK_TODAY);
+  const [day, setDay] = useState(DEMO_TODAY);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -193,16 +194,12 @@ export default function OwnerTripsScreen() {
       <View className="flex-row gap-1.5 mt-4">
         {DAYS.map((item) => {
           const active = day === item;
-          const date = new Date(`${item}T00:00:00`);
-          const weekday = new Intl.DateTimeFormat(
-            i18n.language === "ps" ? "ps-AF" : i18n.language === "fa" ? "fa-AF" : "en-US",
-            { weekday: "short" },
-          ).format(date);
+          const weekday = formatWeekday(item, i18n.language);
           return (
             <Ripple
               key={item}
               onPress={() => setDay(item)}
-              accessibilityLabel={`${weekday} ${date.getDate()}`}
+              accessibilityLabel={`${weekday} ${formatDayNumber(item, i18n.language)}`}
               accessibilityState={{ selected: active }}
               className={`flex-1 items-center rounded-base border py-2 ${
                 active ? "bg-primary border-primary" : "bg-card border-border"
@@ -216,7 +213,7 @@ export default function OwnerTripsScreen() {
                 {weekday}
               </Text>
               <Text className={`text-md font-bold mt-0.5 ${active ? "text-onPrimary" : "text-text"}`}>
-                {date.getDate()}
+                {formatDayNumber(item, i18n.language)}
               </Text>
             </Ripple>
           );

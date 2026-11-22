@@ -14,7 +14,6 @@ export default function DriverTabsLayout() {
       icon: "directions-car",
       activeIcon: "directions-car",
     },
-    { name: "manifest", label: t("driver.nav.manifest"), icon: "groups", activeIcon: "groups" },
     { name: "stats", label: t("driver.nav.stats"), icon: "bar-chart", activeIcon: "bar-chart" },
     {
       name: "profile",
@@ -30,7 +29,6 @@ export default function DriverTabsLayout() {
       tabBar={(props) => <AppTabBar {...props} items={tabs} />}
     >
       <Tabs.Screen name="index" options={{ title: t("driver.nav.trips") }} />
-      <Tabs.Screen name="manifest" options={{ title: t("driver.nav.manifest") }} />
       <Tabs.Screen name="stats" options={{ title: t("driver.nav.stats") }} />
       <Tabs.Screen name="profile" options={{ title: t("driver.nav.profile") }} />
     </Tabs>

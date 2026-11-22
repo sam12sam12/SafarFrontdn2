@@ -17,12 +17,13 @@ import { useDrivers } from "@/lib/queries/driversQueries";
 import { useAssignDriver, useSeatMap, useTrip } from "@/lib/queries/tripsQueries";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
+import { formatTripDate } from "@/lib/dates";
 
 const DEPARTS_IN = "4h 20m";
 
 export default function ManageTripScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripQuery = useTrip(id);
   const { data: trip } = tripQuery;
@@ -83,7 +84,7 @@ export default function ManageTripScreen() {
             {t("owner.tripHeader", { code: trip.code })}
           </Text>
           <Text className="text-sm text-secText mt-0.5">
-            {trip.dateLabel} · {trip.service === "vip" ? t("owner.serviceVip") : t("owner.bookingFilterShared")}
+            {formatTripDate(trip.date, i18n.language)} · {trip.service === "vip" ? t("owner.serviceVip") : t("owner.bookingFilterShared")}
           </Text>
         </View>
         <Ripple

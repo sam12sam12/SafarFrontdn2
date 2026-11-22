@@ -49,7 +49,6 @@ export type ScheduleTripInput = {
   from: City;
   to: City;
   date: string;
-  dateLabel: string;
   departTime: string;
   arriveTime: string;
   departPeriod: "AM" | "PM";
@@ -77,7 +76,6 @@ export function useScheduleTrip() {
         from: input.from,
         to: input.to,
         date: input.date,
-        dateLabel: input.dateLabel,
         departTime: input.departTime,
         departPeriod: input.departPeriod,
         arriveTime: input.arriveTime,

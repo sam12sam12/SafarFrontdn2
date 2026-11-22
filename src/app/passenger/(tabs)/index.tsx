@@ -61,23 +61,26 @@ export default function PassengerHomeScreen() {
   ];
 
   const results = useMemo(() => {
+    // The home feed shows every departure on the corridor: shared and VIP,
+    // today and later, sold out and already on the road. Live trips lead it.
     const items = (trips ?? []).filter(
       (trip) =>
-        trip.status === "scheduled" &&
-        seatAvailability(trip.id) >= seats &&
+        trip.status !== "draft" &&
+        trip.status !== "needs-driver" &&
+        trip.status !== "completed" &&
         (service === "all" || trip.service === service),
     );
-    const sorted =
+    const liveRank = (status: string) =>
+      status === "on-road" ? 0 : status === "boarding" ? 1 : 2;
+    return [...items].sort((a, b) =>
       sort === "price"
-        ? [...items].sort((a, b) => a.price - b.price)
-        : [...items].sort(
-            (a, b) =>
-              a.date.localeCompare(b.date) ||
-              a.departTime.localeCompare(b.departTime) ||
-              a.code.localeCompare(b.code),
-          );
-    return sorted.slice(0, 4);
-  }, [trips, sort, service, seats]);
+        ? a.price - b.price
+        : liveRank(a.status) - liveRank(b.status) ||
+          a.date.localeCompare(b.date) ||
+          a.departTime.localeCompare(b.departTime) ||
+          a.code.localeCompare(b.code),
+    );
+  }, [trips, sort, service]);
 
   const openSeats = (tripId: string) => {
     router.push({
@@ -214,7 +217,9 @@ export default function PassengerHomeScreen() {
               className="flex-row items-center gap-1 rounded-full border border-border bg-card px-3.5 py-2"
             >
               <Icon name="airline-seat-recline-normal" size={14} color={colors.secText} />
-              <Text className="text-base-lg font-semibold text-text">{seats}</Text>
+              <Text className="text-base-lg font-semibold text-text">
+                {seats} {t("common.seats")}
+              </Text>
               <Icon name="expand-more" size={16} color={colors.secText} />
             </Ripple>
 

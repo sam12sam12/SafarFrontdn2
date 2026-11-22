@@ -8,6 +8,7 @@ import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
 import { Ripple } from "../ui/Ripple";
 import { RouteStrip } from "../ui/RouteStrip";
+import { formatDateWithYear } from "@/lib/dates";
 
 type Props = {
   booking: Booking;
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookAgain }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <Card className="p-3.5">
@@ -47,7 +48,7 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
         </View>
         <View className="items-end gap-1">
           <Badge label={t("bookings.tabCompleted")} tone="green" icon="check-circle" compact />
-          <Text className="text-2xs text-muted">{trip.dateLabel} 2026</Text>
+          <Text className="text-2xs text-muted">{formatDateWithYear(trip.date, i18n.language)}</Text>
         </View>
       </View>
 

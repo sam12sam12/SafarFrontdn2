@@ -2,6 +2,7 @@ import { View } from "react-native";
 
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TripCardSkeleton } from "./TripCardSkeleton";
 
 function RowSkeleton() {
   return (
@@ -45,9 +46,7 @@ export function OwnerTripsSkeleton() {
         ))}
       </View>
       <Skeleton className="h-9 w-full rounded-full" />
-      <RowSkeleton />
-      <RowSkeleton />
-      <RowSkeleton />
+      <TripCardSkeleton rows={2} />
     </View>
   );
 }

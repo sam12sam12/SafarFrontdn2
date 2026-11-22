@@ -16,6 +16,7 @@ import { useDriver } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
+import { formatTripDate } from "@/lib/dates";
 
 const DRIVER_ID = "d-wali";
 type TabKey = "upcoming" | "completed" | "cancelled";
@@ -24,7 +25,7 @@ const UPCOMING_WINDOW_END = "2026-11-25";
 
 export default function DriverTripsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tab, setTab] = useState<TabKey>("upcoming");
 
   const driverQuery = useDriver(DRIVER_ID);
@@ -66,9 +67,7 @@ export default function DriverTripsScreen() {
   const openTrip = (trip: Trip) =>
     router.push({ pathname: "/driver/trip/[id]", params: { id: trip.id } });
 
-  const metaDate = nextTrip
-    ? `${nextTrip.dateLabel.split(" ")[0]}, ${nextTrip.dateLabel.split(" ").slice(1).join(" ")}`
-    : "";
+  const metaDate = nextTrip ? formatTripDate(nextTrip.date, i18n.language).toUpperCase() : "";
 
   const tabs: { key: TabKey; label: string; count?: number }[] = [
     {
@@ -174,7 +173,12 @@ export default function DriverTripsScreen() {
               </Card>
             ) : (
               visible.map((trip) => (
-                <DriverScheduleCard key={trip.id} trip={trip} onPress={() => openTrip(trip)} />
+                <DriverScheduleCard
+                  key={trip.id}
+                  trip={trip}
+                  driver={driver}
+                  onPress={() => openTrip(trip)}
+                />
               ))
             )}
           </View>

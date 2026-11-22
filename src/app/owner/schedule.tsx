@@ -13,6 +13,7 @@ import { showToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
 import type { City, ServiceType } from "@/lib/db/types";
 import { useDrivers } from "@/lib/queries/driversQueries";
+import { formatDayNumber, formatTripDate, formatWeekday } from "@/lib/dates";
 import { useScheduleTrip } from "@/lib/queries/tripsQueries";
 import { dismissLoading, showLoading } from "@/Stores/useLoadingStore";
 import { cn } from "@/utils/cn";
@@ -56,15 +57,6 @@ export default function ScheduleTripScreen() {
     return freeInCity.length > 0 ? freeInCity : inCity.filter((driver) => driver.status !== "on-road");
   }, [drivers, from]);
 
-  const dateLabel = useMemo(() => {
-    const value = new Date(`${date}T00:00:00`);
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    }).format(value);
-  }, [date]);
-
   const monthlyTotal = service === "vip" ? Number(price) || 0 : (Number(price) || 0) * 4 + (Number(extra) || 0);
 
   const submit = async () => {
@@ -80,7 +72,6 @@ export default function ScheduleTripScreen() {
         from,
         to,
         date,
-        dateLabel,
         departTime: time.time,
         arriveTime: "01:15",
         departPeriod: time.period,
@@ -95,7 +86,7 @@ export default function ScheduleTripScreen() {
         restStop,
       });
       dismissLoading();
-      showToast("success", t("owner.tripPublished"), `${from} → ${to} · ${dateLabel} ${time.time}`);
+      showToast("success", t("owner.tripPublished"), `${from} → ${to} · ${formatTripDate(date, i18n.language)} ${time.time}`);
       router.back();
     } catch {
       dismissLoading();
@@ -163,16 +154,12 @@ export default function ScheduleTripScreen() {
           <View className="flex-row gap-1.5">
             {DAYS.map((item) => {
               const active = date === item;
-              const value = new Date(`${item}T00:00:00`);
-              const weekday = new Intl.DateTimeFormat(
-                i18n.language === "ps" ? "ps-AF" : i18n.language === "fa" ? "fa-AF" : "en-US",
-                { weekday: "short" },
-              ).format(value);
+              const weekday = formatWeekday(item, i18n.language);
               return (
                 <Ripple
                   key={item}
                   onPress={() => setDate(item)}
-                  accessibilityLabel={`${weekday} ${value.getDate()}`}
+                  accessibilityLabel={`${weekday} ${formatDayNumber(item, i18n.language)}`}
                   accessibilityState={{ selected: active }}
                   className={cn(
                     "flex-1 items-center rounded-base border py-2",
@@ -188,7 +175,7 @@ export default function ScheduleTripScreen() {
                     {weekday}
                   </Text>
                   <Text className={cn("text-md font-bold mt-0.5", active ? "text-onPrimary" : "text-text")}>
-                    {value.getDate()}
+                    {formatDayNumber(item, i18n.language)}
                   </Text>
                 </Ripple>
               );
@@ -414,7 +401,7 @@ export default function ScheduleTripScreen() {
             {from} → {to} · {time.time} {time.period}
           </Text>
           <Text className="text-sm text-onPrimary/75 mt-0.5">
-            {dateLabel} · {service === "vip" ? t("owner.vipWholeCar") : t("owner.sharedSeats")} ·{" "}
+            {formatTripDate(date, i18n.language)} · {service === "vip" ? t("owner.vipWholeCar") : t("owner.sharedSeats")} ·{" "}
             {availableDrivers.find((driver) => driver.id === driverId)?.name ?? t("owner.optional")}
           </Text>
           <View className="h-[1px] bg-onPrimary/20 my-2.5" />

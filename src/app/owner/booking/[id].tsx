@@ -15,11 +15,12 @@ import { OwnerBookingDetailsSkeleton } from "@/components/skeletons/OwnerSkeleto
 import { useAcceptBooking, useBooking, useDeclineBooking } from "@/lib/queries/bookingsQueries";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
+import { formatRelativeDateTime, formatTripDate } from "@/lib/dates";
 import { formatNumber } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
 export default function OwnerBookingDetailsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const bookingQuery = useBooking(id);
@@ -126,7 +127,7 @@ export default function OwnerBookingDetailsScreen() {
             {t("owner.bookingHeader", { code: booking.code })}
           </Text>
           <Text className="text-sm text-secText mt-0.5" numberOfLines={1}>
-            {booking.createdAtLabel}
+            {formatRelativeDateTime(booking.createdAt, i18n.language)}
           </Text>
         </View>
         <Badge
@@ -186,7 +187,7 @@ export default function OwnerBookingDetailsScreen() {
                 {trip?.service === "vip" ? t("owner.vipWholeCar") : t("owner.filterSharedSeat")}
               </Text>
             </View>
-            <Text className="text-sm font-semibold text-onPrimary/85">{trip?.dateLabel}</Text>
+            <Text className="text-sm font-semibold text-onPrimary/85">{trip ? formatTripDate(trip.date, i18n.language) : "—"}</Text>
           </View>
 
           <View className="flex-row items-center justify-between">

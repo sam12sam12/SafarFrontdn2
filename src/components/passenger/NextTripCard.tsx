@@ -4,7 +4,8 @@ import { Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import type { Booking, Driver, Trip } from "@/lib/db/types";
-import { daysUntil, to24Hour } from "@/lib/format";
+import { daysUntil } from "@/lib/dates";
+import { to24Hour } from "@/lib/format";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import { Ripple } from "../ui/Ripple";

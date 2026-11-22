@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { db, findTrip, nextBookingCode, respond, wait } from "@/lib/db";
 import type { Booking, PaymentMethod } from "@/lib/db/types";
+import { DEMO_NOW } from "@/lib/dates";
 import { initialsOf } from "@/lib/format";
 import { queryKeys } from "./queryKeys";
 
@@ -67,10 +68,8 @@ export function useCreateBooking() {
         payment: input.payment,
         paymentStatus: paid ? "paid" : "unpaid",
         status: "new",
-        createdAtLabel: `Booked in the app · ${new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}`,
+        // demo clock never runs ahead of the seeded "now"
+        createdAt: new Date(Math.min(Date.now(), Date.parse(DEMO_NOW))).toISOString(),
         reference: paid
           ? `HP-${Math.floor(10000000 + Math.random() * 89999999)}`
           : undefined,

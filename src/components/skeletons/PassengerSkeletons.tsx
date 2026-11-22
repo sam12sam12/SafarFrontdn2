@@ -2,49 +2,24 @@ import { View } from "react-native";
 
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TripCardSkeleton } from "./TripCardSkeleton";
 
 export function TripListSkeleton({ rows = 3 }: { rows?: number }) {
-  return (
-    <View className="gap-3">
-      {Array.from({ length: rows }).map((_, index) => (
-        <Card key={index} className="gap-3">
-          <View className="flex-row items-center gap-3">
-            <Skeleton className="w-11 h-11 rounded-full" />
-            <View className="flex-1 gap-1.5">
-              <Skeleton className="h-3.5 w-40" />
-              <Skeleton className="h-3 w-24" />
-            </View>
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </View>
-          <Skeleton className="h-16 w-full" />
-          <View className="flex-row justify-between">
-            <Skeleton className="h-8 w-28" />
-            <Skeleton className="h-9 w-32 rounded-full" />
-          </View>
-        </Card>
-      ))}
-    </View>
-  );
+  return <TripCardSkeleton rows={rows} />;
 }
 
 export function HomeSkeleton() {
   return (
     <View className="px-4 gap-3">
-      <Skeleton className="h-[150px] w-full rounded-xl" />
-      <Card className="gap-3">
-        <Skeleton className="h-[150px] w-full" />
-        <View className="flex-row justify-between">
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-9 w-24" />
-        </View>
-      </Card>
-      <View className="flex-row gap-2 mt-1">
-        <Skeleton className="h-9 w-28 rounded-full" />
+      <Skeleton className="h-[132px] w-full rounded-[18px] mt-3" />
+      <Skeleton className="h-3 w-16 mt-1" />
+      <View className="flex-row gap-2">
         <Skeleton className="h-9 w-32 rounded-full" />
-        <Skeleton className="h-9 w-28 rounded-full" />
+        <Skeleton className="h-9 w-20 rounded-full" />
+        <Skeleton className="h-9 w-24 rounded-full" />
+        <Skeleton className="h-9 w-20 rounded-full" />
       </View>
-      <SearchResultsSkeleton />
+      <TripCardSkeleton rows={2} />
     </View>
   );
 }
@@ -64,60 +39,49 @@ export function BookingsSkeleton() {
 export function TripDetailsSkeleton() {
   return (
     <View className="px-4 gap-3">
-      <Card className="gap-3">
-        <View className="flex-row items-center gap-3">
-          <Skeleton className="w-14 h-14 rounded-full" />
-          <View className="flex-1 gap-1.5">
-            <Skeleton className="h-4 w-44" />
-            <Skeleton className="h-3 w-28" />
+      <Card>
+        <View className="flex-row items-center justify-between">
+          <Skeleton className="h-5 w-24 rounded-full" />
+          <Skeleton className="h-4 w-32" />
+        </View>
+        <Skeleton className="h-[64px] w-full rounded-base mt-3" />
+        <View className="flex-row items-center justify-between mt-3">
+          <View className="flex-row items-center gap-2">
+            <Skeleton className="w-9 h-9 rounded-base" />
+            <View className="gap-1.5">
+              <Skeleton className="h-3.5 w-28" />
+              <Skeleton className="h-3 w-20" />
+            </View>
+          </View>
+          <View className="flex-row items-center gap-1.5">
+            <Skeleton className="h-5 w-10 rounded-full" />
+            <Skeleton className="h-5 w-12 rounded-full" />
           </View>
         </View>
-        <Skeleton className="h-16 w-full" />
-        <View className="flex-row justify-between">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-8 w-24" />
-        </View>
       </Card>
-      <Skeleton className="h-20 w-full rounded-lg" />
+
       <Card className="gap-3">
-        <Skeleton className="h-10 w-40" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-8 w-36" />
+        <View className="flex-row items-center justify-between">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-16" />
+        </View>
+        <Skeleton className="h-2 w-full rounded-full" />
       </Card>
+
       <Card className="gap-3">
         <Skeleton className="h-4 w-36" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
       </Card>
     </View>
   );
 }
 
 export function SearchResultsSkeleton() {
-  return (
-    <View className="gap-3">
-      {[0, 1, 2, 3].map((index) => (
-        <Card key={index} className="gap-3">
-          <View className="flex-row items-center gap-3">
-            <Skeleton className="w-11 h-11 rounded-full" />
-            <View className="flex-1 gap-1.5">
-              <Skeleton className="h-4 w-44" />
-              <Skeleton className="h-3 w-28" />
-            </View>
-          </View>
-          <Skeleton className="h-[68px] w-full" />
-          <View className="flex-row items-center gap-2">
-            <Skeleton className="w-9 h-9" />
-            <Skeleton className="h-8 w-32" />
-          </View>
-          <View className="flex-row justify-between">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-32 rounded-full" />
-          </View>
-        </Card>
-      ))}
-    </View>
-  );
+  return <TripCardSkeleton rows={4} />;
 }
 
 export function SeatSelectionSkeleton() {

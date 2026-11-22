@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import type { Booking, Trip } from "@/lib/db/types";
+import { formatDayMonth } from "@/lib/dates";
 import { seatList } from "@/lib/format";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export function TicketCard({ booking, trip, className }: Props) {
+  const { i18n } = useTranslation();
   const paid = booking.paymentStatus === "paid";
 
   return (
@@ -60,7 +63,7 @@ export function TicketCard({ booking, trip, className }: Props) {
             <View className="flex-1 h-[2px] bg-primaryBorder" />
             <View className="w-1.5 h-1.5 rounded-full bg-primary" />
           </View>
-          <Text className="text-sm text-secText">{trip?.dateLabel ?? "Sat 21 Nov"}</Text>
+          <Text className="text-sm text-secText">{trip ? formatDayMonth(trip.date, i18n.language) : "—"}</Text>
         </View>
 
         <View className="items-end">

@@ -9,6 +9,7 @@ import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
 import { Ripple } from "../ui/Ripple";
+import { formatDayMonth, formatRelativeDateTime } from "@/lib/dates";
 
 type Props = {
   booking: Booking;
@@ -29,8 +30,10 @@ export function OwnerBookingCard({
   onCall,
   busy,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const paid = booking.paymentStatus === "paid";
+  const createdLabel = formatRelativeDateTime(booking.createdAt, i18n.language);
+  const tripDate = trip ? formatDayMonth(trip.date, i18n.language) : "—";
   const vip = trip?.service === "vip";
   const seats =
     vip || booking.people > 1
@@ -51,7 +54,7 @@ export function OwnerBookingCard({
               {booking.passengerName}
             </Text>
             <Text className="text-sm text-secText mt-0.5" numberOfLines={1}>
-              {booking.phone} · #{booking.code} · {booking.createdAtLabel}
+              {booking.phone} · #{booking.code} · {createdLabel}
             </Text>
           </View>
           <Ripple
@@ -76,7 +79,7 @@ export function OwnerBookingCard({
           </View>
           <View className="flex-row items-center justify-between gap-2">
             <Text className="text-sm text-secText flex-1" numberOfLines={1}>
-              {trip?.dateLabel ?? "—"} · {trip?.departTime} {trip?.departPeriod}
+              {tripDate} · {trip?.departTime} {trip?.departPeriod}
             </Text>
             <Text className="text-sm font-semibold text-text">{seats}</Text>
           </View>

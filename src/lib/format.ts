@@ -30,17 +30,7 @@ export function cityPair(from: string, to: string) {
   return `${from} → ${to}`;
 }
 
-/** Seed data is anchored to this date so "departs in N days" stays stable
- * in the demo instead of drifting with the wall clock. */
-export const MOCK_TODAY = "2026-11-19";
-
-export function daysUntil(dateISO: string) {
-  const from = new Date(`${MOCK_TODAY}T00:00:00`);
-  const to = new Date(`${dateISO}T00:00:00`);
-  return Math.max(0, Math.round((to.getTime() - from.getTime()) / 86_400_000));
-}
-
-/** "01:15" + "PM" → "13:15" — the ticket card uses a 24-hour clock. */
+/** "01:15" + "PM" → "13:15" — storage always keeps a 24-hour clock. */
 export function to24Hour(time: string, period: string) {
   const [hours, minutes] = time.split(":").map(Number);
   if (period === "AM") {
