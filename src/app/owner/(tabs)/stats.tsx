@@ -21,8 +21,9 @@ export default function OwnerStatsScreen() {
   const { t } = useTranslation();
   const [range, setRange] = useState<StatsRange>("month");
   const statsQuery = useOwnerStats(range);
+  const driversQuery = useDrivers();
   const { data: stats } = statsQuery;
-  const { data: drivers } = useDrivers();
+  const { data: drivers } = driversQuery;
 
   const RANGES: SegmentOption<StatsRange>[] = [
     { label: t("owner.rangeWeek"), value: "week" },
@@ -49,7 +50,14 @@ export default function OwnerStatsScreen() {
   }
 
   return (
-    <Screen contentClassName="px-4 pb-8">
+    <Screen
+      contentClassName="px-4 pb-8"
+      refreshing={statsQuery.isRefetching || driversQuery.isRefetching}
+      onRefresh={() => {
+        statsQuery.refetch();
+        driversQuery.refetch();
+      }}
+    >
       <View className="flex-row items-center justify-between pt-3 pb-2">
         <Text className="text-3xl font-bold text-text">{t("owner.statsTitle")}</Text>
         <IconButton

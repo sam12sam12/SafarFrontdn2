@@ -30,8 +30,9 @@ export default function OwnerBookingsScreen() {
   const [search, setSearch] = useState("");
 
   const bookingsQuery = useBookings("owner");
+  const tripsQuery = useTrips();
   const { data: bookings } = bookingsQuery;
-  const { data: trips } = useTrips();
+  const { data: trips } = tripsQuery;
   const accept = useAcceptBooking();
   const decline = useDeclineBooking();
 
@@ -101,7 +102,14 @@ export default function OwnerBookingsScreen() {
   }
 
   return (
-    <Screen contentClassName="px-4 pb-8">
+    <Screen
+      contentClassName="px-4 pb-8"
+      refreshing={bookingsQuery.isRefetching || tripsQuery.isRefetching}
+      onRefresh={() => {
+        bookingsQuery.refetch();
+        tripsQuery.refetch();
+      }}
+    >
       {header}
 
       <Field

@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { TimeField, type Period } from "@/components/ui/TimeField";
 import { showToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
 import type { City, ServiceType } from "@/lib/db/types";
@@ -19,15 +20,6 @@ import { useScheduleTrip } from "@/lib/queries/tripsQueries";
 import { dismissLoading, showLoading } from "@/Stores/useLoadingStore";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
-
-const TIMES = [
-  { time: "05:00", period: "AM" as const },
-  { time: "06:30", period: "AM" as const },
-  { time: "08:00", period: "AM" as const },
-  { time: "10:00", period: "AM" as const },
-  { time: "01:00", period: "PM" as const },
-  { time: "02:00", period: "PM" as const },
-];
 
 export default function ScheduleTripScreen() {
   const router = useRouter();
@@ -40,7 +32,8 @@ export default function ScheduleTripScreen() {
   const [service, setService] = useState<ServiceType>("shared");
   const [date, setDate] = useState(DEMO_TODAY);
   const [dateSheet, setDateSheet] = useState(false);
-  const [timeIndex, setTimeIndex] = useState(1);
+  const [departTime, setDepartTime] = useState("06:30");
+  const [departPeriod, setDepartPeriod] = useState<Period>("AM");
   const [price, setPrice] = useState("1200");
   const [extra, setExtra] = useState("150");
   const [driverId, setDriverId] = useState<string | undefined>(undefined);
@@ -48,8 +41,6 @@ export default function ScheduleTripScreen() {
   const [restStop, setRestStop] = useState(true);
   const [openForBooking, setOpenForBooking] = useState(true);
   const [note, setNote] = useState("");
-
-  const time = TIMES[timeIndex];
 
   const availableDrivers = useMemo(() => {
     const inCity = (drivers ?? []).filter((driver) => driver.base === from);
@@ -72,9 +63,9 @@ export default function ScheduleTripScreen() {
         from,
         to,
         date,
-        departTime: time.time,
+        departTime: departTime.includes(":") ? departTime : `${departTime.padStart(2, "0")}:00`,
         arriveTime: "01:15",
-        departPeriod: time.period,
+        departPeriod,
         arrivePeriod: "PM",
         service,
         price: numericPrice,
@@ -86,7 +77,7 @@ export default function ScheduleTripScreen() {
         restStop,
       });
       dismissLoading();
-      showToast("success", t("owner.tripPublished"), `${from} → ${to} · ${formatTripDate(date, i18n.language)} ${time.time}`);
+      showToast("success", t("owner.tripPublished"), `${from} → ${to} · ${formatTripDate(date, i18n.language)} ${departTime} ${departPeriod}`);
       router.back();
     } catch {
       dismissLoading();
@@ -163,33 +154,13 @@ export default function ScheduleTripScreen() {
             <Icon name="expand-more" size={20} color={colors.muted} />
           </Ripple>
 
-          <Text className="text-base-lg font-semibold text-text">{t("owner.departureTime")}</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {TIMES.map((item, index) => {
-              const active = index === timeIndex;
-              return (
-                <Ripple
-                  key={`${item.time}-${item.period}`}
-                  onPress={() => setTimeIndex(index)}
-                  accessibilityLabel={`${item.time} ${item.period}`}
-                  accessibilityState={{ selected: active }}
-                  className={cn(
-                    "rounded-base border px-3 py-2 items-center",
-                    active ? "bg-primary border-primary" : "bg-card border-border",
-                  )}
-                >
-                  <Text
-                    className={cn(
-                      "text-sm font-semibold",
-                      active ? "text-onPrimary" : "text-text",
-                    )}
-                  >
-                    {item.time} {item.period}
-                  </Text>
-                </Ripple>
-              );
-            })}
-          </View>
+          <TimeField
+            label={t("owner.departureTime")}
+            value={departTime}
+            period={departPeriod}
+            onChangeValue={setDepartTime}
+            onChangePeriod={setDepartPeriod}
+          />
           <Text className="text-sm text-muted">
             {t("owner.arrivesAbout", { time: "01:15 PM", km: 483, duration: "6h 45m" })}
           </Text>
@@ -379,7 +350,7 @@ export default function ScheduleTripScreen() {
             {t("owner.summary")}
           </Text>
           <Text className="text-lg font-bold text-onPrimary mt-0.5">
-            {from} → {to} · {time.time} {time.period}
+            {from} → {to} · {departTime} {departPeriod}
           </Text>
           <Text className="text-sm text-onPrimary/75 mt-0.5">
             {formatTripDate(date, i18n.language)} · {service === "vip" ? t("owner.vipWholeCar") : t("owner.sharedSeats")} ·{" "}

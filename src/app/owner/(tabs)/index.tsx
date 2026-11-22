@@ -17,7 +17,8 @@ import { OwnerTripsSkeleton } from "@/components/skeletons/OwnerSkeletons";
 import { Card } from "@/components/ui/Card";
 import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import { Field } from "@/components/ui/Field";
-import { Icon, type IconName } from "@/components/ui/Icon";
+import { FilterTriggerChip } from "@/components/ui/FilterTriggerChip";
+import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
@@ -25,7 +26,6 @@ import { showToast } from "@/components/ui/Toast";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 import { DEMO_TODAY, formatRelativeDay } from "@/lib/dates";
-import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
 
 const KIND_LABEL_KEY: Record<Exclude<KindFilter, "all">, string> = {
@@ -162,6 +162,11 @@ export default function OwnerTripsScreen() {
   return (
     <Screen
       contentClassName="px-4 pb-8"
+      refreshing={tripsQuery.isRefetching || driversQuery.isRefetching}
+      onRefresh={() => {
+        tripsQuery.refetch();
+        driversQuery.refetch();
+      }}
       footer={
         <View className="items-center py-3">
           <Ripple
@@ -183,25 +188,25 @@ export default function OwnerTripsScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4 items-center"
       >
-        <FilterChip
+        <FilterTriggerChip
           icon="calendar-today"
           label={formatRelativeDay(day, i18n.language)}
           active
           onPress={() => setDateSheet(true)}
         />
-        <FilterChip
+        <FilterTriggerChip
           icon="alt-route"
           label={routeChipLabel}
           active={routeFilter !== "all"}
           onPress={() => setRouteSheet(true)}
         />
-        <FilterChip
+        <FilterTriggerChip
           icon="sell"
           label={kindChipLabel}
           active={kindFilter !== "all"}
           onPress={() => setKindSheet(true)}
         />
-        <FilterChip
+        <FilterTriggerChip
           icon="filter-list"
           label={statusChipLabel}
           active={statusFilter !== "all"}
@@ -243,7 +248,6 @@ export default function OwnerTripsScreen() {
         onClose={() => setDateSheet(false)}
         value={day}
         onChange={setDay}
-        minDate="2026-11-01"
       />
       <RouteFilterSheet
         visible={routeSheet}
@@ -264,39 +268,5 @@ export default function OwnerTripsScreen() {
         onSelect={setStatusFilter}
       />
     </Screen>
-  );
-}
-
-function FilterChip({
-  icon,
-  label,
-  active,
-  onPress,
-}: {
-  icon: IconName;
-  label: string;
-  active?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Ripple
-      onPress={onPress}
-      accessibilityLabel={label}
-      className={cn(
-        "flex-row items-center gap-1.5 rounded-full border px-3.5 py-2",
-        active ? "bg-primary border-primary" : "bg-card border-border",
-      )}
-    >
-      <Icon name={icon} size={14} color={active ? colors.onPrimary : colors.secText} />
-      <Text
-        className={cn(
-          "text-base-lg font-semibold whitespace-nowrap",
-          active ? "text-onPrimary" : "text-secText",
-        )}
-      >
-        {label}
-      </Text>
-      <Icon name="expand-more" size={16} color={active ? colors.onPrimary : colors.secText} />
-    </Ripple>
   );
 }

@@ -1,5 +1,6 @@
 import dayjs, { type Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import localeData from "dayjs/plugin/localeData";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 
@@ -11,6 +12,7 @@ import i18n from "@/utils/i18n";
 dayjs.extend(customParseFormat);
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
+dayjs.extend(localeData);
 
 export type AppLanguage = "en" | "fa" | "ps";
 
@@ -128,6 +130,53 @@ export function daysUntil(dateISO: string) {
 
 export function isSameDay(a: string, b: string) {
   return parseDate(a).isSame(parseDate(b), "day");
+}
+
+export function isToday(dateISO: string) {
+  return isSameDay(dateISO, DEMO_TODAY);
+}
+
+/** True for any day strictly before the demo "today" — the past. */
+export function isPastDay(dateISO: string) {
+  return parseDate(dateISO).isBefore(parseDate(DEMO_TODAY), "day");
+}
+
+/** Localize a number into the active language's digits ("19" → "۱۹"). */
+export function localizeNumber(value: number | string, lng?: string) {
+  return localizeDigits(String(value), lng);
+}
+
+/** Localized "MMMM YYYY" header, e.g. "November 2026" / "نومبر ۲۰۲۶". */
+export function formatMonthYear(dateISO: string, lng?: string) {
+  return formatDate(dateISO, "MMMM YYYY", lng);
+}
+
+/** Seven weekday initials, Saturday-first (the Afghan week start). */
+export function weekdayInitials(lng?: string): string[] {
+  const names = parseDate(DEMO_TODAY).locale(dateLocale(lng)).localeData().weekdaysMin();
+  // dayjs returns Sunday-first; rotate so Saturday leads.
+  return [names[6], names[0], names[1], names[2], names[3], names[4], names[5]];
+}
+
+/**
+ * A 6×7 grid of ISO day strings for the month that contains `anchorISO`,
+ * Saturday-first with `null` for the leading/trailing blank cells.
+ */
+export function monthGrid(anchorISO: string): (string | null)[] {
+  const first = parseDate(anchorISO).startOf("month");
+  // Column of the 1st: Saturday(6) → 0, Sunday(0) → 1, … Friday(5) → 6.
+  const lead = (first.day() + 1) % 7;
+  const total = first.daysInMonth();
+  const cells: (string | null)[] = [];
+  for (let i = 0; i < lead; i += 1) cells.push(null);
+  for (let d = 0; d < total; d += 1) cells.push(toISODate(first.add(d, "day")));
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+/** Last selectable day of the month that contains `anchorISO`. */
+export function endOfMonthISO(anchorISO: string) {
+  return toISODate(parseDate(anchorISO).endOf("month"));
 }
 
 function formatDate(dateISO: string, pattern: string, lng?: string) {

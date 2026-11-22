@@ -36,7 +36,11 @@ export default function DriverProfileScreen() {
   const review = driver.review;
 
   return (
-    <Screen contentClassName="pb-8">
+    <Screen
+      contentClassName="pb-8"
+      refreshing={driverQuery.isRefetching}
+      onRefresh={() => driverQuery.refetch()}
+    >
       <View className="px-4">
         <View className="flex-row items-start justify-between mt-4">
           <View>

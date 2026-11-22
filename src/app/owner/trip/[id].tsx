@@ -70,7 +70,11 @@ export default function ManageTripScreen() {
           : t("owner.scheduledBadge");
 
   return (
-    <Screen contentClassName="pb-8">
+    <Screen
+      contentClassName="pb-8"
+      refreshing={tripQuery.isRefetching}
+      onRefresh={() => tripQuery.refetch()}
+    >
       <View className="flex-row items-center gap-3 px-4 pt-3 pb-3">
         <Ripple
           onPress={() => router.back()}

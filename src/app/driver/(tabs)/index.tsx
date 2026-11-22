@@ -83,7 +83,14 @@ export default function DriverTripsScreen() {
     tab === "upcoming" ? upcoming : tab === "completed" ? completed : [];
 
   return (
-    <Screen contentClassName="pb-8">
+    <Screen
+      contentClassName="pb-8"
+      refreshing={tripsQuery.isRefetching || driverQuery.isRefetching}
+      onRefresh={() => {
+        tripsQuery.refetch();
+        driverQuery.refetch();
+      }}
+    >
       {isLoading || !driver ? (
         <DriverTripsSkeleton />
       ) : (

@@ -64,6 +64,8 @@ export default function OwnerBookingDetailsScreen() {
   return (
     <Screen
       contentClassName="pb-8"
+      refreshing={bookingQuery.isRefetching}
+      onRefresh={() => bookingQuery.refetch()}
       footer={
         <View className="flex-row gap-2.5 px-4 py-3 bg-mainBack border-t border-border">
           {booking.status === "new" ? (

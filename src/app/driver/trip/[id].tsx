@@ -66,6 +66,11 @@ export default function DriverTripManifestScreen() {
   return (
     <Screen
       contentClassName="pb-4"
+      refreshing={tripQuery.isRefetching || seatsQuery.isRefetching}
+      onRefresh={() => {
+        tripQuery.refetch();
+        seatsQuery.refetch();
+      }}
       footer={
         trip ? (
           <View className="bg-card border-t border-border px-4 pt-2.5 pb-3.5 flex-row gap-2.5">

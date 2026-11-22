@@ -6,42 +6,54 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
-import { RoutePicker } from "@/components/passenger/RoutePicker";
 import { SearchTripCard } from "@/components/passenger/SearchTripCard";
 import { SeatsPicker } from "@/components/passenger/SeatsPicker";
 import { HomeSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon, type IconName } from "@/components/ui/Icon";
+import { FilterTriggerChip } from "@/components/ui/FilterTriggerChip";
+import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { SelectMenuSheet, type SelectOption } from "@/components/ui/SelectMenuSheet";
+import {
+  WhenFilterSheet,
+  timeValueToMinutes,
+  type WhenValue,
+} from "@/components/ui/WhenFilterSheet";
 import { seatAvailability } from "@/lib/db";
 import type { City, ServiceType } from "@/lib/db/types";
+import { formatRelativeDay, isPastDay, isSameDay } from "@/lib/dates";
+import { to24Hour } from "@/lib/format";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
-import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
 
-type SortValue = "earliest" | "price" | "ac";
+type SortValue = "earliest" | "price";
 type ServiceFilter = ServiceType | "all";
+type RouteFilter = "all" | "to-kabul" | "to-kandahar";
 
-const SORTS: { labelKey: string; value: SortValue; icon: IconName }[] = [
-  { labelKey: "search.earliest", value: "earliest", icon: "bolt" },
-  { labelKey: "search.lowestPrice", value: "price", icon: "payments" },
-  { labelKey: "search.acDeluxe", value: "ac", icon: "ac-unit" },
-];
+function tripDepartMinutes(time: string, period: string) {
+  const [h, m] = to24Hour(time, period).split(":").map(Number);
+  return h * 60 + m;
+}
 
 export default function PassengerHomeScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const [from, setFrom] = useState<City>("Kandahar");
-  const [to, setTo] = useState<City>("Kabul");
+  const { t, i18n } = useTranslation();
+
+  const [route, setRoute] = useState<RouteFilter>("all");
   const [service, setService] = useState<ServiceFilter>("all");
   const [seats, setSeats] = useState(1);
+  const [when, setWhen] = useState<WhenValue>({ date: null, time: null });
   const [sort, setSort] = useState<SortValue>("earliest");
-  const [routePickerOpen, setRoutePickerOpen] = useState(false);
-  const [seatsPickerOpen, setSeatsPickerOpen] = useState(false);
+
+  const [routeSheet, setRouteSheet] = useState(false);
+  const [serviceSheet, setServiceSheet] = useState(false);
+  const [seatsSheet, setSeatsSheet] = useState(false);
+  const [whenSheet, setWhenSheet] = useState(false);
+  const [sortSheet, setSortSheet] = useState(false);
 
   const [primaryDark, primary, primaryLight] = useCSSVariable([
     "--color-primaryDark",
@@ -49,27 +61,47 @@ export default function PassengerHomeScreen() {
     "--color-primaryLight",
   ]) as string[];
 
-  const tripsQuery = useTrips({ from, to });
+  const tripsQuery = useTrips();
   const driversQuery = useDrivers();
   const { data: trips, isLoading, isRefetching, refetch } = tripsQuery;
   const { data: drivers } = driversQuery;
 
-  const SERVICE_FILTERS = [
-    { label: t("owner.filterAll"), value: "all" as ServiceFilter },
-    { label: t("home.shared"), value: "shared" as ServiceFilter },
-    { label: "VIP", value: "vip" as ServiceFilter },
+  // The route filter doubles as the from/to used when navigating into search.
+  const [navFrom, navTo]: [City, City] =
+    route === "to-kandahar" ? ["Kabul", "Kandahar"] : ["Kandahar", "Kabul"];
+
+  const ROUTE_OPTIONS: SelectOption<RouteFilter>[] = [
+    { value: "all", label: t("home.allDirections"), icon: "swap-horiz" },
+    { value: "to-kabul", label: `${t("common.kandahar")} → ${t("common.kabul")}`, icon: "arrow-forward" },
+    { value: "to-kandahar", label: `${t("common.kabul")} → ${t("common.kandahar")}`, icon: "arrow-forward" },
+  ];
+
+  const SERVICE_OPTIONS: SelectOption<ServiceFilter>[] = [
+    { value: "all", label: t("home.allServices"), icon: "filter-list" },
+    { value: "shared", label: t("home.shared"), icon: "groups" },
+    { value: "vip", label: "VIP", icon: "star" },
+  ];
+
+  const SORT_OPTIONS: SelectOption<SortValue>[] = [
+    { value: "earliest", label: t("search.earliest"), icon: "bolt" },
+    { value: "price", label: t("search.lowestPrice"), icon: "payments" },
   ];
 
   const results = useMemo(() => {
-    // The home feed shows every departure on the corridor: shared and VIP,
-    // today and later, sold out and already on the road. Live trips lead it.
-    const items = (trips ?? []).filter(
-      (trip) =>
-        trip.status !== "draft" &&
-        trip.status !== "needs-driver" &&
-        trip.status !== "completed" &&
-        (service === "all" || trip.service === service),
-    );
+    const afterMinutes = timeValueToMinutes(when.time);
+    const items = (trips ?? []).filter((trip) => {
+      if (trip.status === "draft" || trip.status === "needs-driver" || trip.status === "completed")
+        return false;
+      if (isPastDay(trip.date)) return false; // only now / future, never past
+      if (route === "to-kabul" && !(trip.from === "Kandahar" && trip.to === "Kabul")) return false;
+      if (route === "to-kandahar" && !(trip.from === "Kabul" && trip.to === "Kandahar")) return false;
+      if (service !== "all" && trip.service !== service) return false;
+      if (seatAvailability(trip.id) < seats) return false;
+      if (when.date && !isSameDay(trip.date, when.date)) return false;
+      if (afterMinutes !== null && tripDepartMinutes(trip.departTime, trip.departPeriod) < afterMinutes)
+        return false;
+      return true;
+    });
     const liveRank = (status: string) =>
       status === "on-road" ? 0 : status === "boarding" ? 1 : 2;
     return [...items].sort((a, b) =>
@@ -80,7 +112,7 @@ export default function PassengerHomeScreen() {
           a.departTime.localeCompare(b.departTime) ||
           a.code.localeCompare(b.code),
     );
-  }, [trips, sort, service]);
+  }, [trips, sort, route, service, seats, when]);
 
   const openSeats = (tripId: string) => {
     router.push({
@@ -89,7 +121,24 @@ export default function PassengerHomeScreen() {
     });
   };
 
-  const routeLabel = `${t(`common.${from.toLowerCase()}`)} → ${t(`common.${to.toLowerCase()}`)}`;
+  const routeLabel =
+    route === "all"
+      ? t("home.routeTitle")
+      : route === "to-kabul"
+        ? `${t("common.kandahar")} → ${t("common.kabul")}`
+        : `${t("common.kabul")} → ${t("common.kandahar")}`;
+  const serviceLabel =
+    service === "all" ? t("home.serviceTitle") : service === "vip" ? "VIP" : t("home.shared");
+  const sortLabel = sort === "price" ? t("search.lowestPrice") : t("search.earliest");
+  const whenActive = when.date !== null || when.time !== null;
+  const timeText = when.time ? `${when.time.time} ${when.time.period}` : null;
+  const whenLabel = !whenActive
+    ? t("home.whenTitle")
+    : when.date && timeText
+      ? `${formatRelativeDay(when.date, i18n.language)} · ${timeText}`
+      : when.date
+        ? formatRelativeDay(when.date, i18n.language)
+        : t("home.afterTime", { time: timeText });
 
   return (
     <Screen
@@ -120,8 +169,7 @@ export default function PassengerHomeScreen() {
         <HomeSkeleton />
       ) : (
         <View className="px-4">
-          {/* Banner — a compact, purely descriptive brand strip (not tied to the
-              direction filter below it) */}
+          {/* Banner */}
           <LinearGradient
             colors={[primaryDark, primary, primaryLight]}
             start={{ x: 0, y: 0 }}
@@ -144,7 +192,9 @@ export default function PassengerHomeScreen() {
                   {t("home.fleetSubtitle")}
                 </Text>
                 <Ripple
-                  onPress={() => router.push({ pathname: "/passenger/search", params: { from, to } })}
+                  onPress={() =>
+                    router.push({ pathname: "/passenger/search", params: { from: navFrom, to: navTo } })
+                  }
                   accessibilityLabel={t("common.allTrips")}
                   className="self-start flex-row items-center gap-1.5 rounded-full bg-card px-3.5 py-2 mt-2 shadow-button shadow-buttonShadow"
                 >
@@ -163,8 +213,7 @@ export default function PassengerHomeScreen() {
             </View>
           </LinearGradient>
 
-          {/* Filters — route, service and seats all shape the result set below,
-              in a single scrollable row */}
+          {/* Filters */}
           <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-4 mb-2">
             {t("home.filtersLabel")}
           </Text>
@@ -173,92 +222,19 @@ export default function PassengerHomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerClassName="gap-2 pr-4 items-center"
           >
-            <Ripple
-              onPress={() => setRoutePickerOpen(true)}
-              accessibilityLabel={t("home.chooseRoute")}
-              className="flex-row items-center gap-1 rounded-full border border-border bg-card px-3.5 py-2"
-            >
-              <Text className="text-base-lg font-semibold text-text whitespace-nowrap">
-                {routeLabel}
-              </Text>
-              <Icon name="expand-more" size={16} color={colors.secText} />
-            </Ripple>
-
-            <View className="w-px h-5 bg-border" />
-
-            {SERVICE_FILTERS.map((option) => {
-              const active = option.value === service;
-              return (
-                <Ripple
-                  key={option.value}
-                  onPress={() => setService(option.value)}
-                  accessibilityRole="tab"
-                  accessibilityLabel={option.label}
-                  className={cn(
-                    "rounded-full px-3.5 py-2 border",
-                    active ? "bg-text border-text" : "bg-card border-border",
-                  )}
-                >
-                  <Text
-                    className={cn(
-                      "text-base-lg font-semibold whitespace-nowrap",
-                      active ? "text-onPrimary" : "text-secText",
-                    )}
-                  >
-                    {option.label}
-                  </Text>
-                </Ripple>
-              );
-            })}
-
-            <Ripple
-              onPress={() => setSeatsPickerOpen(true)}
-              accessibilityLabel={t("home.seatsTitle")}
-              className="flex-row items-center gap-1 rounded-full border border-border bg-card px-3.5 py-2"
-            >
-              <Icon name="airline-seat-recline-normal" size={14} color={colors.secText} />
-              <Text className="text-base-lg font-semibold text-text">
-                {seats} {t("common.seats")}
-              </Text>
-              <Icon name="expand-more" size={16} color={colors.secText} />
-            </Ripple>
-
-            <View className="w-px h-5 bg-border" />
-
-            {SORTS.map((option) => {
-              const active = option.value === sort;
-              return (
-                <Ripple
-                  key={option.value}
-                  onPress={() => setSort(option.value)}
-                  accessibilityRole="tab"
-                  accessibilityLabel={t(option.labelKey)}
-                  className={cn(
-                    "flex-row items-center gap-1.5 rounded-full border px-3.5 py-2",
-                    active
-                      ? "bg-primary border-primary shadow-button shadow-buttonShadow"
-                      : "bg-card border-border",
-                  )}
-                >
-                  <Icon
-                    name={option.icon}
-                    size={14}
-                    color={active ? colors.onPrimary : colors.secText}
-                  />
-                  <Text
-                    className={cn(
-                      "text-base-lg font-semibold whitespace-nowrap",
-                      active ? "text-onPrimary" : "text-secText",
-                    )}
-                  >
-                    {t(option.labelKey)}
-                  </Text>
-                </Ripple>
-              );
-            })}
+            <FilterTriggerChip icon="swap-horiz" label={routeLabel} active={route !== "all"} onPress={() => setRouteSheet(true)} />
+            <FilterTriggerChip icon="sell" label={serviceLabel} active={service !== "all"} onPress={() => setServiceSheet(true)} />
+            <FilterTriggerChip
+              icon="airline-seat-recline-normal"
+              label={`${seats} ${t("common.seats")}`}
+              active={seats > 1}
+              onPress={() => setSeatsSheet(true)}
+            />
+            <FilterTriggerChip icon="event" label={whenLabel} active={whenActive} onPress={() => setWhenSheet(true)} />
+            <FilterTriggerChip icon="sort" label={sortLabel} active={sort !== "earliest"} onPress={() => setSortSheet(true)} />
           </ScrollView>
 
-          {/* Trips — same cards as the Search Trips screen */}
+          {/* Trips */}
           <View className="gap-3 mt-3">
             {results.length === 0 ? (
               <Card className="py-2">
@@ -289,9 +265,7 @@ export default function PassengerHomeScreen() {
               <Icon name="account-balance" size={19} color={colors.onPrimary} />
             </View>
             <View className="flex-1">
-              <Text className="text-base-lg font-bold text-text">
-                {t("search.guaranteeTitle")}
-              </Text>
+              <Text className="text-base-lg font-bold text-text">{t("search.guaranteeTitle")}</Text>
               <Text className="text-sm text-secText mt-0.5" numberOfLines={1}>
                 {t("search.guaranteeSub")}
               </Text>
@@ -300,20 +274,44 @@ export default function PassengerHomeScreen() {
         </View>
       )}
 
-      <RoutePicker
-        visible={routePickerOpen}
-        onClose={() => setRoutePickerOpen(false)}
-        from={from}
-        onSelect={(nextFrom, nextTo) => {
-          setFrom(nextFrom);
-          setTo(nextTo);
-        }}
+      <SelectMenuSheet
+        visible={routeSheet}
+        onClose={() => setRouteSheet(false)}
+        title={t("home.routeTitle")}
+        options={ROUTE_OPTIONS}
+        value={route}
+        onSelect={setRoute}
+        clearTo="all"
+      />
+      <SelectMenuSheet
+        visible={serviceSheet}
+        onClose={() => setServiceSheet(false)}
+        title={t("home.serviceTitle")}
+        options={SERVICE_OPTIONS}
+        value={service}
+        onSelect={setService}
+        clearTo="all"
       />
       <SeatsPicker
-        visible={seatsPickerOpen}
-        onClose={() => setSeatsPickerOpen(false)}
+        visible={seatsSheet}
+        onClose={() => setSeatsSheet(false)}
         value={seats}
         onChange={setSeats}
+      />
+      <WhenFilterSheet
+        visible={whenSheet}
+        onClose={() => setWhenSheet(false)}
+        value={when}
+        onApply={setWhen}
+      />
+      <SelectMenuSheet
+        visible={sortSheet}
+        onClose={() => setSortSheet(false)}
+        title={t("home.sortTitle")}
+        options={SORT_OPTIONS}
+        value={sort}
+        onSelect={setSort}
+        clearTo="earliest"
       />
     </Screen>
   );

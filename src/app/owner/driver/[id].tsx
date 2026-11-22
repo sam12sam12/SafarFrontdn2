@@ -54,7 +54,11 @@ export default function OwnerDriverProfileScreen() {
   const lastPayout = stats?.payouts?.[0];
 
   return (
-    <Screen contentClassName="pb-8">
+    <Screen
+      contentClassName="pb-8"
+      refreshing={driverQuery.isRefetching}
+      onRefresh={() => driverQuery.refetch()}
+    >
       <View className="flex-row items-center gap-3 px-4 pt-3 pb-3">
         <Ripple
           onPress={() => router.back()}

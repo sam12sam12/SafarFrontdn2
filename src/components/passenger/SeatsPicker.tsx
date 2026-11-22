@@ -68,6 +68,20 @@ export function SeatsPicker({ visible, onClose, value, onChange }: Props) {
       </View>
 
       <AppButton label={t("common.done")} onPress={onClose} />
+
+      {value > MIN_SEATS ? (
+        <Ripple
+          onPress={() => {
+            onChange(MIN_SEATS);
+            onClose();
+          }}
+          accessibilityLabel={t("common.clearFilter")}
+          className="flex-row items-center justify-center gap-2 py-3 mt-1"
+        >
+          <Icon name="restart-alt" size={16} color={colors.error} />
+          <Text className="text-base-lg font-semibold text-error">{t("common.clearFilter")}</Text>
+        </Ripple>
+      ) : null}
     </BottomSheet>
   );
 }

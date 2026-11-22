@@ -17,7 +17,8 @@ import { colors } from "@/utils/theme";
 export default function DriverStatsScreen() {
   const { t } = useTranslation();
   const [range, setRange] = useState<StatsRange>("month");
-  const { data: stats, isLoading } = useDriverStats(range);
+  const statsQuery = useDriverStats(range);
+  const { data: stats, isLoading } = statsQuery;
 
   const options: SegmentOption<StatsRange>[] = [
     { label: t("driver.range.week"), value: "week" },
@@ -37,7 +38,11 @@ export default function DriverStatsScreen() {
   const period = stats.monthLabel.toUpperCase().replace(" · ", " • ");
 
   return (
-    <Screen contentClassName="pb-8">
+    <Screen
+      contentClassName="pb-8"
+      refreshing={statsQuery.isRefetching}
+      onRefresh={() => statsQuery.refetch()}
+    >
       <View className="px-4">
         <View className="flex-row items-start justify-between mt-4">
           <View>

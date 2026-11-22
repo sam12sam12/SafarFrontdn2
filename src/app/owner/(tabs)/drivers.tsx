@@ -24,8 +24,9 @@ export default function OwnerDriversScreen() {
   const [search, setSearch] = useState("");
 
   const driversQuery = useDrivers();
+  const tripsQuery = useTrips();
   const { data: drivers } = driversQuery;
-  const { data: trips } = useTrips();
+  const { data: trips } = tripsQuery;
 
   const counts = useMemo(() => {
     const all = drivers ?? [];
@@ -92,6 +93,11 @@ export default function OwnerDriversScreen() {
   return (
     <Screen
       contentClassName="px-4 pb-8"
+      refreshing={driversQuery.isRefetching || tripsQuery.isRefetching}
+      onRefresh={() => {
+        driversQuery.refetch();
+        tripsQuery.refetch();
+      }}
       footer={
         <View className="items-end px-4 py-3">
           <Ripple
