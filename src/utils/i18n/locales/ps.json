@@ -38,6 +38,7 @@
     "reset": "بیا تنظیم",
     "apply": "پلي کړئ",
     "clearFilter": "فیلټر پاک کړئ",
+    "clearAll": "ټول پاک کړئ",
     "tomorrow": "سبا",
     "yesterday": "پرون"
   },
@@ -46,6 +47,18 @@
     "bookings": "بکینګونه",
     "support": "ملاتړ",
     "profile": "پروفایل"
+  },
+  "notifications": {
+    "title": "خبرتیاوې",
+    "markAllRead": "ټول لوستل شوي وبلل",
+    "today": "نن",
+    "earlier": "پخوانی",
+    "unread_one": "{{count}} نالوستی",
+    "unread_other": "{{count}} نالوستي",
+    "allReadToast": "ټول وکتل شول",
+    "allReadToastBody": "ټولې خبرتیاوې لوستل شوې په نښه شوې.",
+    "emptyTitle": "ټول مو ولیدل",
+    "emptyMessage": "د سفرونو تازه معلومات، بکینګونه او د لویې لارې خبرتیاوې به دلته ښکاره شي."
   },
   "home": {
     "bannerTitle": "په بشپړ آرامتیا\nسفر وکړئ",

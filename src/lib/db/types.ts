@@ -171,3 +171,19 @@ export type PassengerProfile = {
   savedPassengers: number;
   joinedLabel: string;
 };
+
+export type NotificationRole = "passenger" | "driver" | "owner";
+
+export type NotificationTone = "primary" | "success" | "warning" | "error" | "slate";
+
+export type AppNotification = {
+  id: string;
+  role: NotificationRole;
+  icon: string;
+  tone: NotificationTone;
+  title: string;
+  body: string;
+  /** ISO timestamp — formatted relative to the demo "now" at render time. */
+  at: string;
+  read: boolean;
+};

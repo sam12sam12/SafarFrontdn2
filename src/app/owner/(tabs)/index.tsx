@@ -24,6 +24,7 @@ import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
 import { useDrivers } from "@/lib/queries/driversQueries";
+import { useUnreadCount } from "@/lib/queries/notificationsQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 import { DEMO_TODAY, formatRelativeDay } from "@/lib/dates";
 import { colors } from "@/utils/theme";
@@ -61,6 +62,7 @@ export default function OwnerTripsScreen() {
     status: ["scheduled", "boarding", "on-road", "full", "needs-driver", "draft"],
   });
   const driversQuery = useDrivers();
+  const { count: unread } = useUnreadCount("owner");
   const { data: trips } = tripsQuery;
   const { data: drivers } = driversQuery;
 
@@ -123,18 +125,14 @@ export default function OwnerTripsScreen() {
           <View>
             <IconButton
               icon="notifications-none"
-              accessibilityLabel={t("driver.notifications")}
+              accessibilityLabel={t("notifications.title")}
               variant="white"
               size="md"
-              onPress={() =>
-                showToast(
-                  "info",
-                  t("owner.newRequestsToast", { count: 4 }),
-                  t("owner.newRequestsToastSub"),
-                )
-              }
+              onPress={() => router.push("/owner/notifications")}
             />
-            <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error border border-card" />
+            {unread > 0 ? (
+              <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error border border-card" />
+            ) : null}
           </View>
         </View>
       </View>
@@ -212,6 +210,22 @@ export default function OwnerTripsScreen() {
           active={statusFilter !== "all"}
           onPress={() => setStatusSheet(true)}
         />
+        {routeFilter !== "all" || kindFilter !== "all" || statusFilter !== "all" ? (
+          <Ripple
+            onPress={() => {
+              setRouteFilter("all");
+              setKindFilter("all");
+              setStatusFilter("all");
+            }}
+            accessibilityLabel={t("common.clearAll")}
+            className="flex-row items-center gap-1.5 rounded-full border-2 border-error/40 bg-errorSoft px-3.5 py-1.5"
+          >
+            <Icon name="restart-alt" size={14} color={colors.error} />
+            <Text className="text-base-lg font-semibold text-error whitespace-nowrap">
+              {t("common.clearAll")}
+            </Text>
+          </Ripple>
+        ) : null}
       </ScrollView>
 
       {liveTrip ? (

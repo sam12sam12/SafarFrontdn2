@@ -3,10 +3,20 @@ import {
   seedBookings,
   seedDriverStats,
   seedDrivers,
+  seedNotifications,
   seedOwnerStats,
   seedTrips,
 } from "./seed";
-import type { Booking, Driver, DriverStats, OwnerStats, PassengerProfile, Seat, Trip } from "./types";
+import type {
+  AppNotification,
+  Booking,
+  Driver,
+  DriverStats,
+  OwnerStats,
+  PassengerProfile,
+  Seat,
+  Trip,
+} from "./types";
 
 /**
  * The mock database. Everything the app reads or writes goes through here
@@ -21,6 +31,7 @@ export const db: {
   ownerStats: OwnerStats;
   driverStats: DriverStats;
   profile: PassengerProfile;
+  notifications: AppNotification[];
 } = {
   trips: seedTrips.map((trip) => ({ ...trip })),
   drivers: seedDrivers.map((driver) => ({ ...driver })),
@@ -28,6 +39,7 @@ export const db: {
   ownerStats: { ...seedOwnerStats },
   driverStats: { ...seedDriverStats },
   profile: { ...passengerProfile },
+  notifications: seedNotifications.map((item) => ({ ...item })),
 };
 
 let bookingSequence = 7785;

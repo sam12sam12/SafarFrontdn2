@@ -4,16 +4,13 @@ import { Text, View } from "react-native";
 
 import { MilestoneList } from "@/components/passenger/MilestoneList";
 import { RouteTimeline } from "@/components/passenger/RouteTimeline";
+import { TripRouteHero } from "@/components/trip/TripRouteHero";
 import { TripDetailsSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
-import { Avatar } from "@/components/ui/Avatar";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { Rating } from "@/components/ui/Rating";
-import { Ripple } from "@/components/ui/Ripple";
-import { RouteStrip } from "@/components/ui/RouteStrip";
 import { Screen } from "@/components/ui/Screen";
 import { seatAvailability } from "@/lib/db";
 import type { TripStatus } from "@/lib/db/types";
@@ -156,47 +153,34 @@ export default function TripDetailsScreen() {
       contentClassName="pb-28"
       footer={footer}
     >
-      <AppHeader title={t("trip.title")} />
+      <AppHeader
+        title={t("trip.title")}
+        subtitle={trip ? formatTripDate(trip.date, i18n.language) : undefined}
+        right={trip ? <Badge label={t(STATUS_LABEL[status])} tone={STATUS_TONE[status]} /> : undefined}
+      />
 
       {tripQuery.isLoading || !trip ? (
         <TripDetailsSkeleton />
       ) : (
         <View className="px-4 gap-3">
-          <Card>
-            <View className="flex-row items-center justify-between gap-2">
-              <Badge label={t(STATUS_LABEL[status])} tone={STATUS_TONE[status]} />
-              <Text className="text-sm font-semibold text-secText">{formatTripDate(trip.date, i18n.language)}</Text>
-            </View>
-
-            <RouteStrip
-              className="mt-3"
-              fromCity={fromCity}
-              toCity={toCity}
-              departTime={trip.departTime}
-              departPeriod={trip.departPeriod}
-              arriveTime={trip.arriveTime}
-              arrivePeriod={trip.arrivePeriod}
-              duration={trip.duration}
-            />
-
-            <View className="flex-row items-center justify-between mt-3">
-              <View className="flex-row items-center gap-2">
-                <View className="w-9 h-9 rounded-base bg-primarySoft items-center justify-center">
-                  <Icon name="directions-car" size={18} color={colors.primary} />
-                </View>
-                <View>
-                  <Text className="text-base-lg font-bold text-text">
-                    {trip.service === "vip" ? t("driver.vipFamily") : "Toyota Fielder"}
-                  </Text>
-                  <Text className="text-sm text-secText">{t("trip.plate", { plate: trip.vehiclePlate })}</Text>
-                </View>
-              </View>
-              <View className="flex-row items-center gap-1.5">
-                <Badge label={t("common.ac")} tone="slate" icon="ac-unit" compact />
-                <Badge label={t("common.bags")} tone="slate" icon="luggage" compact />
-              </View>
-            </View>
-          </Card>
+          <TripRouteHero
+            trip={trip}
+            driver={driver ?? undefined}
+            onDriverPress={
+              trip.driverId
+                ? () =>
+                    router.push({ pathname: "/passenger/driver/[id]", params: { id: trip.driverId! } })
+                : undefined
+            }
+            tiles={[
+              {
+                label: t("driver.service"),
+                value: trip.service === "vip" ? t("driver.vipFamily") : t("driver.shared"),
+              },
+              { label: t("owner.vehicle"), value: trip.vehiclePlate },
+              { label: t("owner.filterDate"), value: formatTripDate(trip.date, i18n.language) },
+            ]}
+          />
 
           {live ? (
             <Card>
@@ -328,42 +312,6 @@ export default function TripDetailsScreen() {
                 },
               ]}
             />
-          </Card>
-
-          <Card>
-            <Ripple
-              onPress={() => {
-                if (trip.driverId) {
-                  router.push({
-                    pathname: "/passenger/driver/[id]",
-                    params: { id: trip.driverId },
-                  });
-                }
-              }}
-              accessibilityLabel={driver?.name ?? t("driverDetails.title")}
-              className="flex-row items-center gap-3"
-            >
-              <Avatar
-                initials={driver?.initials ?? "—"}
-                photo={driver?.photo}
-                size="lg"
-                verified={Boolean(driver)}
-              />
-              <View className="flex-1">
-                <View className="flex-row items-center gap-1.5">
-                  <Text className="text-md font-bold text-text" numberOfLines={1}>
-                    {driver?.name ?? t("owner.noDriverAssigned")}
-                  </Text>
-                  {driver ? <Icon name="verified" size={14} color={colors.primary} /> : null}
-                </View>
-                <Rating
-                  value={driver?.rating ?? 4.9}
-                  count={`(${driver?.totalTrips ?? 184} trips)`}
-                  className="mt-1"
-                />
-              </View>
-              <Icon name="chevron-right" size={18} color={colors.muted} />
-            </Ripple>
           </Card>
         </View>
       )}

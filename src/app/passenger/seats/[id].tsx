@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { CarCabin } from "@/components/passenger/CarCabin";
-import { TripSummaryCard } from "@/components/passenger/TripSummaryCard";
+import { TripRouteHero } from "@/components/trip/TripRouteHero";
 import { SeatSelectionSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
@@ -120,7 +120,24 @@ export default function SeatSelectionScreen() {
         <SeatSelectionSkeleton />
       ) : (
         <View className="px-4 gap-3">
-          <TripSummaryCard trip={trip} driver={driver ?? undefined} />
+          <TripRouteHero
+            trip={trip}
+            driver={driver ?? undefined}
+            onDriverPress={
+              trip.driverId
+                ? () =>
+                    router.push({ pathname: "/passenger/driver/[id]", params: { id: trip.driverId! } })
+                : undefined
+            }
+            tiles={[
+              {
+                label: t("driver.service"),
+                value: trip.service === "vip" ? t("driver.vipFamily") : t("driver.shared"),
+              },
+              { label: t("owner.vehicle"), value: trip.vehiclePlate },
+              { label: t("home.passengerCap"), value: String(trip.seatsTotal) },
+            ]}
+          />
 
           <Card className="p-4">
             <View className="flex-row items-start justify-between">

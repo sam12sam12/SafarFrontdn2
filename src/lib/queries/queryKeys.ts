@@ -31,4 +31,8 @@ export const queryKeys = {
     driver: (range: string) => ["stats", "driver", range] as const,
   },
   profile: ["profile"] as const,
+  notifications: {
+    all: ["notifications"] as const,
+    list: (role: string) => ["notifications", "list", role] as const,
+  },
 };

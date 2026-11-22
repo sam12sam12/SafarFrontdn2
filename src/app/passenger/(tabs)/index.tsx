@@ -27,6 +27,7 @@ import type { City, ServiceType } from "@/lib/db/types";
 import { formatRelativeDay, isPastDay, isSameDay } from "@/lib/dates";
 import { to24Hour } from "@/lib/format";
 import { useDrivers } from "@/lib/queries/driversQueries";
+import { useUnreadCount } from "@/lib/queries/notificationsQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 import { colors } from "@/utils/theme";
 
@@ -65,6 +66,7 @@ export default function PassengerHomeScreen() {
   const driversQuery = useDrivers();
   const { data: trips, isLoading, isRefetching, refetch } = tripsQuery;
   const { data: drivers } = driversQuery;
+  const { count: unread } = useUnreadCount("passenger");
 
   // The route filter doubles as the from/to used when navigating into search.
   const [navFrom, navTo]: [City, City] =
@@ -114,6 +116,22 @@ export default function PassengerHomeScreen() {
     );
   }, [trips, sort, route, service, seats, when]);
 
+  const anyFilterActive =
+    route !== "all" ||
+    service !== "all" ||
+    seats > 1 ||
+    when.date !== null ||
+    when.time !== null ||
+    sort !== "earliest";
+
+  const clearAllFilters = () => {
+    setRoute("all");
+    setService("all");
+    setSeats(1);
+    setWhen({ date: null, time: null });
+    setSort("earliest");
+  };
+
   const openSeats = (tripId: string) => {
     router.push({
       pathname: "/passenger/seats/[id]",
@@ -157,12 +175,18 @@ export default function PassengerHomeScreen() {
           </View>
           <Text className="text-lg font-bold text-text">Express Highway</Text>
         </View>
-        <IconButton
-          icon="notifications-none"
-          accessibilityLabel={t("driver.notifications")}
-          variant="white"
-          size="sm"
-        />
+        <View>
+          <IconButton
+            icon="notifications-none"
+            accessibilityLabel={t("notifications.title")}
+            variant="white"
+            size="sm"
+            onPress={() => router.push("/passenger/notifications")}
+          />
+          {unread > 0 ? (
+            <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error border border-card" />
+          ) : null}
+        </View>
       </View>
 
       {isLoading && !trips ? (
@@ -232,6 +256,18 @@ export default function PassengerHomeScreen() {
             />
             <FilterTriggerChip icon="event" label={whenLabel} active={whenActive} onPress={() => setWhenSheet(true)} />
             <FilterTriggerChip icon="sort" label={sortLabel} active={sort !== "earliest"} onPress={() => setSortSheet(true)} />
+            {anyFilterActive ? (
+              <Ripple
+                onPress={clearAllFilters}
+                accessibilityLabel={t("common.clearAll")}
+                className="flex-row items-center gap-1.5 rounded-full border-2 border-error/40 bg-errorSoft px-3.5 py-1.5"
+              >
+                <Icon name="restart-alt" size={14} color={colors.error} />
+                <Text className="text-base-lg font-semibold text-error whitespace-nowrap">
+                  {t("common.clearAll")}
+                </Text>
+              </Ripple>
+            ) : null}
           </ScrollView>
 
           {/* Trips */}

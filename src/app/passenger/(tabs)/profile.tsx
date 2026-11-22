@@ -269,9 +269,6 @@ function SettingsRow({
   right?: ReactNode;
   onPress?: () => void;
 }) {
-  const language = useLanguageStore((state) => state.language);
-  const isRTL = language === "ps" || language === "fa";
-
   return (
     <Ripple
       onPress={onPress}
@@ -299,7 +296,7 @@ function SettingsRow({
               {value}
             </Text>
           ) : null}
-          <Icon name={isRTL ? "chevron-left" : "chevron-right"} size={18} color="#94A3B8" />
+          <Icon name="chevron-right" size={18} color="#94A3B8" />
         </View>
       )}
     </Ripple>

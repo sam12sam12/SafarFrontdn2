@@ -38,6 +38,7 @@
     "reset": "بازنشانی",
     "apply": "تأیید",
     "clearFilter": "پاک کردن فیلتر",
+    "clearAll": "پاک کردن همه",
     "tomorrow": "فردا",
     "yesterday": "دیروز"
   },
@@ -46,6 +47,18 @@
     "bookings": "رزروها",
     "support": "پشتیبانی",
     "profile": "پروفایل"
+  },
+  "notifications": {
+    "title": "اطلاعیه‌ها",
+    "markAllRead": "همه خوانده شد",
+    "today": "امروز",
+    "earlier": "قبلی",
+    "unread_one": "{{count}} ناخوانده",
+    "unread_other": "{{count}} ناخوانده",
+    "allReadToast": "همه بررسی شد",
+    "allReadToastBody": "همه اطلاعیه‌ها خوانده‌شده علامت زده شد.",
+    "emptyTitle": "همه را دیده‌اید",
+    "emptyMessage": "به‌روزرسانی سفرها، رزروها و هشدارهای شاهراه اینجا نمایش داده می‌شود."
   },
   "home": {
     "bannerTitle": "سفر با آسایش\nکامل",

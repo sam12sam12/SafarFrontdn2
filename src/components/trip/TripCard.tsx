@@ -52,6 +52,8 @@ export function TripCard({
   // localized weekday + day + month, with Today / Tomorrow short-circuited
   const dateText = formatRelativeDay(trip.date, i18n.language);
 
+  // Seats-remaining reads the same everywhere now — a soft-red pill like the
+  // passenger home card — with on-road / boarding / sold-out as the exceptions.
   const statusLine =
     trip.status === "on-road"
       ? { label: t("owner.statusOnRoad"), tone: "text-success", icon: "navigation" as const }
@@ -59,26 +61,28 @@ export function TripCard({
         ? { label: t("trip.boardingNow"), tone: "text-success", icon: "sensor-occupied" as const }
         : freeSeats <= 0
           ? { label: t("common.soldOut"), tone: "text-muted", icon: "block" as const }
-          : variant === "passenger"
-            ? {
-                label: t("trip.seatsAvailable", { count: freeSeats }),
-                tone: "text-error",
-                icon: "airline-seat-recline-normal" as const,
-              }
-            : {
-                label: t("trip.seatsEmpty", { count: freeSeats }),
-                tone: "text-secText",
-                icon: "event-seat" as const,
-              };
+          : {
+              label:
+                variant === "passenger"
+                  ? t("trip.seatsAvailable", { count: freeSeats })
+                  : t("trip.seatsEmpty", { count: freeSeats }),
+              tone: "text-error",
+              icon: "airline-seat-recline-normal" as const,
+            };
 
   const statusColor =
     trip.status === "on-road" || trip.status === "boarding"
       ? colors.success
       : freeSeats <= 0
         ? colors.muted
-        : variant === "passenger"
-          ? colors.error
-          : colors.secText;
+        : colors.error;
+
+  const statusBg =
+    trip.status === "on-road" || trip.status === "boarding"
+      ? "bg-successSoft"
+      : freeSeats <= 0
+        ? "bg-disable"
+        : "bg-errorSoft";
 
   const actionLabel =
     variant === "owner"
@@ -192,9 +196,9 @@ export function TripCard({
               </Text>
               <Text className="text-sm font-semibold text-secText">{t("common.afn")}</Text>
             </View>
-            <View className="flex-row items-center gap-1 mt-0.5">
+            <View className={cn("flex-row items-center gap-1 mt-1 self-start rounded-full px-2 py-1", statusBg)}>
               <Icon name={statusLine.icon} size={12} color={statusColor} />
-              <Text className={cn("text-sm font-semibold", statusLine.tone)}>
+              <Text className={cn("text-xs font-bold", statusLine.tone)}>
                 {statusLine.label}
               </Text>
             </View>

@@ -1,9 +1,9 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { DriverSeatMap } from "@/components/driver/DriverSeatMap";
+import { TripRouteHero } from "@/components/trip/TripRouteHero";
 import { DriverTripDetailsSkeleton } from "@/components/skeletons/DriverSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
@@ -27,10 +27,6 @@ export default function DriverTripManifestScreen() {
   const { data: driver } = useDriver(trip?.driverId);
 
   const loading = tripQuery.isLoading || seatsLoading || !trip;
-  const from = t(`common.${trip?.from.toLowerCase() ?? "kandahar"}`);
-  const to = t(`common.${trip?.to.toLowerCase() ?? "kabul"}`);
-  const fromPoint = trip?.boardingPoint.split(" · ")[0];
-  const toPoint = trip?.dropOffPoint.replace(" Terminal", "");
 
   const stops = [
     {
@@ -104,73 +100,17 @@ export default function DriverTripManifestScreen() {
         <DriverTripDetailsSkeleton />
       ) : (
         <View className="px-4 gap-3">
-          <LinearGradient
-            colors={["#2563EB", "#1D4ED8"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 18, padding: 15 }}
-          >
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <View className="flex-row items-baseline gap-1">
-                  <Text className="text-2xl font-bold text-white">{trip.departTime}</Text>
-                  <Text className="text-xs font-semibold text-white/70">{trip.departPeriod}</Text>
-                </View>
-                <Text className="text-base-lg font-bold text-white mt-0.5">{from}</Text>
-                <Text className="text-2xs text-white/65 mt-0.5" numberOfLines={1}>
-                  {fromPoint}
-                </Text>
-              </View>
-
-              <View className="items-center px-1 pt-1">
-                <View className="rounded-full bg-white/15 border border-white/25 px-2 py-0.5">
-                  <Text className="text-2xs font-semibold text-white">{trip.duration}</Text>
-                </View>
-                <View className="flex-row items-center mt-1.5">
-                  <View className="w-1.5 h-1.5 rounded-full bg-white" />
-                  <View className="w-8 h-[1.5px] bg-white/40" />
-                  <Icon name="directions-car" size={14} color="#FFFFFF" />
-                  <View className="w-8 h-[1.5px] bg-white/40" />
-                  <View className="w-1.5 h-1.5 rounded-full bg-white/50 border border-white" />
-                </View>
-                <Text className="text-2xs text-white/65 mt-1">{t("driver.hwyDirect")}</Text>
-              </View>
-
-              <View className="flex-1 items-end">
-                <View className="flex-row items-baseline gap-1">
-                  <Text className="text-2xl font-bold text-white">{trip.arriveTime}</Text>
-                  <Text className="text-xs font-semibold text-white/70">{trip.arrivePeriod}</Text>
-                </View>
-                <Text className="text-base-lg font-bold text-white mt-0.5">{to}</Text>
-                <Text className="text-2xs text-white/65 mt-0.5" numberOfLines={1}>
-                  {toPoint}
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-row gap-2 mt-4">
-              <View className="flex-1 rounded-md bg-white/10 border border-white/15 py-2 items-center">
-                <Text className="text-2xs font-semibold uppercase tracking-[0.7px] text-white/60">
-                  {t("driver.service")}
-                </Text>
-                <Text className="text-sm font-bold text-white mt-0.5">
-                  {trip.service === "vip" ? t("driver.vipFamily") : t("driver.sharedVip")}
-                </Text>
-              </View>
-              <View className="flex-1 rounded-md bg-white/10 border border-white/15 py-2 items-center">
-                <Text className="text-2xs font-semibold uppercase tracking-[0.7px] text-white/60">
-                  {t("driver.vehicle")}
-                </Text>
-                <Text className="text-sm font-bold text-white mt-0.5">{trip.vehiclePlate}</Text>
-              </View>
-              <View className="flex-1 rounded-md bg-white/10 border border-white/15 py-2 items-center">
-                <Text className="text-2xs font-semibold uppercase tracking-[0.7px] text-white/60">
-                  {t("driver.distance")}
-                </Text>
-                <Text className="text-sm font-bold text-white mt-0.5">{trip.distanceKm} km</Text>
-              </View>
-            </View>
-          </LinearGradient>
+          <TripRouteHero
+            trip={trip}
+            tiles={[
+              {
+                label: t("driver.service"),
+                value: trip.service === "vip" ? t("driver.vipFamily") : t("driver.sharedVip"),
+              },
+              { label: t("driver.vehicle"), value: trip.vehiclePlate },
+              { label: t("driver.distance"), value: `${trip.distanceKm} km` },
+            ]}
+          />
 
           <Card>
             <View className="flex-row items-start justify-between gap-2">

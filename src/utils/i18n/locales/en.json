@@ -38,6 +38,7 @@
     "reset": "Reset",
     "apply": "Apply",
     "clearFilter": "Clear filter",
+    "clearAll": "Clear all",
     "tomorrow": "Tomorrow",
     "yesterday": "Yesterday"
   },
@@ -46,6 +47,18 @@
     "bookings": "Bookings",
     "support": "Support",
     "profile": "Profile"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "today": "Today",
+    "earlier": "Earlier",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread",
+    "allReadToast": "All caught up",
+    "allReadToastBody": "Every notification is marked as read.",
+    "emptyTitle": "You're all caught up",
+    "emptyMessage": "New trip updates, bookings and highway alerts will show up here."
   },
   "home": {
     "bannerTitle": "Ride in Total\nComfort",

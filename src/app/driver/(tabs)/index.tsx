@@ -10,9 +10,9 @@ import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
-import { showToast } from "@/components/ui/Toast";
 import type { Trip } from "@/lib/db/types";
 import { useDriver } from "@/lib/queries/driversQueries";
+import { useUnreadCount } from "@/lib/queries/notificationsQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
@@ -32,6 +32,7 @@ export default function DriverTripsScreen() {
   const tripsQuery = useTrips();
   const { data: driver } = driverQuery;
   const { data: trips, isLoading } = tripsQuery;
+  const { count: unread } = useUnreadCount("driver");
 
   const mine = useMemo(
     () => (trips ?? []).filter((trip) => trip.driverId === DRIVER_ID),
@@ -121,14 +122,14 @@ export default function DriverTripsScreen() {
               </Text>
             </View>
             <Ripple
-              onPress={() =>
-                showToast("info", t("driver.notifications"), t("driver.notificationsBody"))
-              }
-              accessibilityLabel={t("driver.notifications")}
+              onPress={() => router.push("/driver/notifications")}
+              accessibilityLabel={t("notifications.title")}
               className="w-10 h-10 rounded-full bg-card border border-border items-center justify-center"
             >
               <Icon name="notifications-none" size={21} color={colors.text} />
-              <View className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-warning border border-card" />
+              {unread > 0 ? (
+                <View className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-warning border border-card" />
+              ) : null}
             </Ripple>
           </View>
 

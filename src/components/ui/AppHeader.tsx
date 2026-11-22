@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { cn } from "@/utils/cn";
 import { IconButton } from "./IconButton";
 
@@ -24,14 +23,13 @@ export function AppHeader({
   className,
 }: Props) {
   const router = useRouter();
-  const language = useLanguageStore((state) => state.language);
-  const isRTL = language === "ps" || language === "fa";
 
   return (
     <View className={cn("flex-row items-center gap-3 px-4 py-3", className)}>
       {showBack && (
+        // The Icon component mirrors "arrow-back" automatically under RTL.
         <IconButton
-          icon={isRTL ? "arrow-forward" : "arrow-back"}
+          icon="arrow-back"
           accessibilityLabel="Go back"
           variant="white"
           onPress={onBack ?? (() => router.back())}
