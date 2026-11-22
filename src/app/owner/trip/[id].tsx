@@ -1,27 +1,27 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { AppButton } from "@/components/ui/AppButton";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { DetailRow } from "@/components/ui/DetailRow";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
-import { SeatTile } from "@/components/ui/SeatTile";
 import { showToast } from "@/components/ui/Toast";
 import { OwnerManageTripSkeleton } from "@/components/skeletons/OwnerSkeletons";
-import { seatAvailability } from "@/lib/db";
 import { useBookings } from "@/lib/queries/bookingsQueries";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useAssignDriver, useSeatMap, useTrip } from "@/lib/queries/tripsQueries";
 import { cn } from "@/utils/cn";
 import { colors } from "@/utils/theme";
 
+const DEPARTS_IN = "4h 20m";
+
 export default function ManageTripScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripQuery = useTrip(id);
@@ -30,188 +30,309 @@ export default function ManageTripScreen() {
   const { data: bookings } = useBookings("owner");
   const { data: drivers } = useDrivers();
   const assign = useAssignDriver();
+  const [pickedDriver, setPickedDriver] = useState<string | undefined>(undefined);
 
   const driver = drivers?.find((entry) => entry.id === trip?.driverId);
   const tripBookings = (bookings ?? []).filter(
     (booking) => booking.tripId === id && booking.status !== "cancelled",
   );
-  const revenue = trip ? trip.seatsBooked * trip.price : 0;
+  const booked = tripBookings.reduce((sum, booking) => sum + booking.amount, 0);
+  const paid = tripBookings
+    .filter((booking) => booking.paymentStatus === "paid")
+    .reduce((sum, booking) => sum + booking.amount, 0);
+  const freeSeats = Math.max(0, (trip?.seatsTotal ?? 0) - (trip?.seatsBooked ?? 0));
+  const allSold = booked + freeSeats * (trip?.price ?? 0);
+
   const candidates = (drivers ?? []).filter(
-    (entry) => entry.status === "free" || entry.status === "trip-today",
+    (entry) => entry.base === trip?.from && (entry.status === "free" || entry.status === "trip-today"),
   );
 
   if (tripQuery.isLoading || !trip) {
     return (
       <Screen contentClassName="pb-8">
-        <AppHeader title={t("owner.manageTripTitle")} />
+        <View className="px-4 pt-3">
+          <Text className="text-xl font-bold text-text">{t("owner.manageTripTitle")}</Text>
+        </View>
         <OwnerManageTripSkeleton />
       </Screen>
     );
   }
 
+  const statusLabel =
+    trip.status === "needs-driver"
+      ? t("owner.needsDriverBadge")
+      : trip.status === "on-road"
+        ? t("owner.onRoadBadge")
+        : trip.status === "boarding"
+          ? t("owner.boarding")
+          : t("owner.scheduledBadge");
+
   return (
     <Screen contentClassName="pb-8">
-      <AppHeader
-        title={t("owner.manageTripTitle")}
-        subtitle={`${trip.code} · ${trip.dateLabel}`}
-        right={<Badge label={trip.status === "on-road" ? t("owner.onRoadBadge") : t("owner.scheduledBadge")} tone="blue" />}
-      />
+      <View className="flex-row items-center gap-3 px-4 pt-3 pb-3">
+        <Ripple
+          onPress={() => router.back()}
+          accessibilityLabel={t("owner.manageTripTitle")}
+          className="w-10 h-10 rounded-full bg-card border border-border items-center justify-center"
+        >
+          <Icon name="arrow-back" size={19} color={colors.text} />
+        </Ripple>
+        <View className="flex-1">
+          <Text className="text-xl font-bold text-text">
+            {t("owner.tripHeader", { code: trip.code })}
+          </Text>
+          <Text className="text-sm text-secText mt-0.5">
+            {trip.dateLabel} · {trip.service === "vip" ? t("owner.serviceVip") : t("owner.bookingFilterShared")}
+          </Text>
+        </View>
+        <Ripple
+          onPress={() => showToast("info", t("owner.edit"), t("owner.mockDisclaimer"))}
+          accessibilityLabel={t("owner.edit")}
+          className="flex-row items-center gap-1 rounded-full border border-primaryBorder px-3 py-1.5"
+        >
+          <Icon name="edit" size={14} color={colors.primary} />
+          <Text className="text-sm font-semibold text-primary">{t("owner.edit")}</Text>
+        </Ripple>
+      </View>
 
       <View className="px-4 gap-3">
-        <Card>
-          <View className="flex-row items-baseline justify-between">
-            <View>
-              <Text className="text-2xl font-bold text-text">
-                {trip.departTime} <Text className="text-sm text-secText">{trip.departPeriod}</Text>
+        <View className="rounded-xl bg-primary p-4 shadow-card shadow-shadowColor">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-1.5 rounded-full bg-onPrimary/15 px-2 py-1">
+              <View className="w-1.5 h-1.5 rounded-full bg-onPrimary/80" />
+              <Text className="text-2xs font-bold uppercase tracking-[0.8px] text-onPrimary/85">
+                {statusLabel}
               </Text>
-              <Text className="text-base-lg font-semibold text-primary">{t(`common.${trip.from.toLowerCase()}`)}</Text>
             </View>
-            <View className="items-center">
-              <Text className="text-xs text-muted">{trip.duration}</Text>
-              <View className="flex-row items-center gap-1 my-1">
-                <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-                <View className="w-12 h-[2px] bg-primaryBorder" />
-                <Icon name="directions-car" size={14} color={colors.primary} />
-                <View className="w-12 h-[2px] bg-primaryBorder" />
-                <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-              </View>
-              <Text className="text-xs text-secText">{trip.distanceKm} km</Text>
-            </View>
-            <View className="items-end">
-              <Text className="text-2xl font-bold text-text">
-                {trip.arriveTime} <Text className="text-sm text-secText">{trip.arrivePeriod}</Text>
-              </Text>
-              <Text className="text-base-lg font-semibold text-primary">{t(`common.${trip.to.toLowerCase()}`)}</Text>
-            </View>
-          </View>
-
-          <View className="flex-row gap-2 mt-3">
-            <Badge label={trip.service === "vip" ? t("owner.vipWholeCar") : t("owner.bookingFilterShared")} tone={trip.service === "vip" ? "teal" : "blue"} />
-            <Badge label={`${trip.seatsBooked}/${trip.seatsTotal} ${t("owner.seatsSuffix")}`} tone="slate" icon="groups" />
-            <Badge label={`${seatAvailability(id ?? "")} ${t("owner.freeSuffix")}`} tone="green" />
-          </View>
-        </Card>
-
-        <Card className="flex-row items-center gap-3">
-          <Avatar initials={driver?.initials ?? "?"} photo={driver?.photo} size="md" verified={Boolean(driver)} />
-          <View className="flex-1">
-            <Text className="text-base-lg font-bold text-text">{driver?.name ?? t("owner.noDriverAssigned")}</Text>
-            <Text className="text-sm text-secText mt-0.5">
-              {driver ? `${driver.vehicleModel} · ${driver.plate}` : t("owner.assignFreeChauffeur")}
+            <Text className="text-sm font-semibold text-onPrimary/80">
+              {t("owner.departsIn", { time: DEPARTS_IN })}
             </Text>
           </View>
-          <Badge label={driver ? t("owner.assigned") : t("owner.needsDriverBadge")} tone={driver ? "green" : "amber"} compact />
-        </Card>
 
-        <Card>
-          <Text className="text-lg font-bold text-text mb-2.5">{t("owner.seatMap")}</Text>
-          <View className="gap-2">
-            <View className="flex-row gap-2">
-              {(seats ?? []).slice(0, 2).map((seat) => (
-                <SeatTile key={seat.id} seat={seat} compact />
-              ))}
-            </View>
-            <View className="flex-row gap-2">
-              {(seats ?? []).slice(2, 4).map((seat) => (
-                <SeatTile key={seat.id} seat={seat} compact />
-              ))}
-            </View>
-          </View>
-          <View className="h-[1px] bg-secBorder my-3" />
-          <DetailRow label={t("owner.bookedRevenue")} value={`${revenue.toLocaleString("en-US")} ${t("common.afn")}`} />
-          <DetailRow label={t("owner.passengers")} value={`${tripBookings.length}`} />
-          <DetailRow label={t("owner.boarding")} value={trip.boardingPoint} />
-        </Card>
-
-        <Card>
-          <Text className="text-lg font-bold text-text mb-2">{t("owner.passengerManifest")}</Text>
-          {tripBookings.length === 0 ? (
-            <Text className="text-base text-muted py-2">{t("owner.noPassengersYet")}</Text>
-          ) : (
-            tripBookings.map((booking, index) => (
-              <View key={booking.id}>
-                <View className="flex-row items-center gap-2.5 py-2.5">
-                  <Avatar initials={booking.initials} size="sm" />
-                  <View className="flex-1">
-                    <Text className="text-base-lg font-semibold text-text">{booking.passengerName}</Text>
-                    <Text className="text-sm text-secText mt-0.5">
-                      {t("common.seat")} {booking.seats.join(", ")} · {booking.phone}
-                    </Text>
-                  </View>
-                  <Badge
-                    label={booking.paymentStatus === "paid" ? t("common.paid") : t("owner.collectCash")}
-                    tone={booking.paymentStatus === "paid" ? "green" : "amber"}
-                    compact
-                  />
-                </View>
-                {index < tripBookings.length - 1 ? <View className="h-[1px] bg-secBorder" /> : null}
+          <View className="flex-row items-start justify-between mt-3">
+            <View className="flex-1">
+              <View className="flex-row items-baseline gap-1">
+                <Text className="text-3xl font-bold text-onPrimary">{trip.departTime}</Text>
+                <Text className="text-base-lg font-semibold text-onPrimary/80">{trip.departPeriod}</Text>
               </View>
-            ))
-          )}
-        </Card>
+              <Text className="text-base-lg font-bold text-onPrimary mt-0.5">{trip.from}</Text>
+              <Text className="text-2xs text-onPrimary/70" numberOfLines={1}>
+                {trip.boardingPoint}
+              </Text>
+            </View>
 
-        <Card>
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-lg font-bold text-text">{t("owner.reassignDriver")}</Text>
-            <Badge label={t("owner.freeFirst")} tone="slate" compact />
+            <View className="items-center px-1 w-24 mt-2">
+              <Text className="text-2xs font-semibold text-onPrimary/70">
+                {trip.duration} · {trip.distanceKm} km
+              </Text>
+              <View className="flex-row items-center gap-1 mt-1 w-full">
+                <View className="w-1.5 h-1.5 rounded-full bg-onPrimary" />
+                <View className="flex-1 h-[1px] border-t border-dashed border-onPrimary/40" />
+                <View className="w-1.5 h-1.5 rounded-full bg-onPrimary" />
+              </View>
+            </View>
+
+            <View className="flex-1 items-end">
+              <View className="flex-row items-baseline gap-1">
+                <Text className="text-3xl font-bold text-onPrimary">{trip.arriveTime}</Text>
+                <Text className="text-base-lg font-semibold text-onPrimary/80">{trip.arrivePeriod}</Text>
+              </View>
+              <Text className="text-base-lg font-bold text-onPrimary mt-0.5">{trip.to}</Text>
+              <Text className="text-2xs text-onPrimary/70" numberOfLines={1}>
+                {trip.dropOffPoint}
+              </Text>
+            </View>
           </View>
+        </View>
+
+        <Card className="border-warning/50 gap-2.5">
+          <View className="flex-row items-center gap-2">
+            <Icon name="error-outline" size={19} color={colors.warning} />
+            <Text className="text-lg font-bold text-text">{t("owner.chooseDriverCar")}</Text>
+          </View>
+          <Text className="text-sm text-secText">
+            {t("owner.freeInCityTime", { city: trip.from })}
+          </Text>
+
           <View className="gap-2">
             {candidates.slice(0, 4).map((entry) => {
-              const active = entry.id === trip.driverId;
+              const active = pickedDriver === entry.id;
               return (
                 <Ripple
                   key={entry.id}
-                  onPress={async () => {
-                    try {
-                      await assign.mutateAsync({ tripId: trip.id, driverId: entry.id });
-                      showToast("success", t("owner.driverAssigned"), `${entry.name} → ${trip.code}`);
-                    } catch {
-                      showToast("error", t("owner.couldNotAssign"), t("owner.tryAnotherDriver"));
-                    }
-                  }}
-                  accessibilityLabel={`${t("owner.assignDriver")}: ${entry.name}`}
+                  onPress={() => setPickedDriver(active ? undefined : entry.id)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={entry.name}
+                  accessibilityState={{ selected: active }}
                   className={cn(
-                    "flex-row items-center gap-2.5 rounded-base border px-3 py-2.5",
-                    active ? "border-primary bg-primarySoft" : "border-border bg-card",
+                    "flex-row items-center gap-2.5 rounded-base border p-2.5",
+                    active ? "border-primary" : "border-border",
                   )}
                 >
-                  <View className="w-8 h-8 rounded-full bg-card border border-border items-center justify-center">
+                  <View className="w-9 h-9 rounded-full bg-primarySoft items-center justify-center">
                     <Text className="text-sm font-bold text-primary">{entry.initials}</Text>
                   </View>
                   <View className="flex-1">
                     <Text className="text-base-lg font-semibold text-text">{entry.name}</Text>
-                    <Text className="text-sm text-secText">
-                      {entry.base} · {entry.plate}
-                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <Icon name="star" size={10} color={colors.warning} />
+                      <Text className="text-2xs text-secText">
+                        {entry.rating.toFixed(1)} · Fielder {entry.plate} · {t("owner.freeAllDay")}
+                      </Text>
+                    </View>
                   </View>
                   <Icon
-                    name={active ? "check-circle" : "radio-button-unchecked"}
-                    size={18}
+                    name={active ? "radio-button-checked" : "radio-button-unchecked"}
+                    size={20}
                     color={active ? colors.primary : colors.slate}
                   />
                 </Ripple>
               );
             })}
           </View>
+
+          <AppButton
+            label={t("owner.assignNotify")}
+            loading={assign.isPending}
+            disabled={!pickedDriver}
+            onPress={async () => {
+              if (!pickedDriver) return;
+              try {
+                await assign.mutateAsync({ tripId: trip.id, driverId: pickedDriver });
+                showToast(
+                  "success",
+                  t("owner.driverAssigned"),
+                  candidates.find((entry) => entry.id === pickedDriver)?.name ?? "",
+                );
+                setPickedDriver(undefined);
+              } catch {
+                showToast("error", t("owner.couldNotAssign"), t("owner.tryAnotherDriver"));
+              }
+            }}
+          />
         </Card>
 
-        <View className="flex-row gap-2.5">
-          <AppButton
-            label={t("owner.callDriver")}
-            variant="secondary"
-            icon="phone"
-            iconPosition="left"
-            className="flex-1"
-            onPress={() => showToast("info", t("owner.calling"), driver?.phone ?? t("owner.noDriverYet"))}
+        <Card className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-text">{t("owner.seatsHeading")}</Text>
+            <Text className="text-sm font-bold text-primary">
+              {t("owner.seatsBookedOf", { booked: trip.seatsBooked, total: trip.seatsTotal })}
+            </Text>
+          </View>
+
+          <View className="gap-2">
+            {[0, 2].map((start) => (
+              <View key={start} className="flex-row gap-2">
+                {(seats ?? []).slice(start, start + 2).map((seat) => {
+                  const booking = tripBookings.find((entry) => entry.seats.includes(seat.id));
+                  const occupied = Boolean(booking);
+                  return (
+                    <View
+                      key={seat.id}
+                      className={cn(
+                        "flex-1 rounded-base border p-2.5 gap-1",
+                        occupied ? "border-warning/60 bg-warningSoft" : "border-primaryBorder border-dashed bg-card",
+                      )}
+                    >
+                      <Text className="text-2xs font-bold uppercase tracking-[0.6px] text-muted">
+                        {seat.legroom
+                          ? t("owner.seatLegroom", { seat: seat.id })
+                          : t("owner.seatPlain", { seat: seat.id })}
+                      </Text>
+                      <Text
+                        className={cn(
+                          "text-base-lg font-bold",
+                          occupied ? "text-text" : "text-primary",
+                        )}
+                        numberOfLines={1}
+                      >
+                        {booking?.passengerName ?? t("owner.addPassenger")}
+                      </Text>
+                      <Text className="text-sm text-secText" numberOfLines={1}>
+                        {booking
+                          ? booking.paymentStatus === "paid"
+                            ? t("owner.confirmedPaid", { amount: seat.price.toLocaleString("en-US") })
+                            : `${booking.status === "new" ? t("owner.tabNewShort") : t("owner.tabConfirmed")} · ${t(
+                                "owner.unpaidWord",
+                              )} ${seat.price.toLocaleString("en-US")}`
+                          : t("owner.seatOpen", { price: seat.price.toLocaleString("en-US") })}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+
+          <Text className="text-sm text-muted">{t("owner.walkInHint")}</Text>
+        </Card>
+
+        <Card>
+          <Text className="text-2xs font-bold uppercase tracking-[1.2px] text-muted mb-1">
+            {t("owner.money")}
+          </Text>
+          <DetailRow label={t("owner.bookedSoFar")} value={`${booked.toLocaleString("en-US")} ${t("common.afn")}`} />
+          <DetailRow
+            label={t("owner.paidByHesabpay")}
+            value={`${paid.toLocaleString("en-US")} ${t("common.afn")}`}
           />
-          <AppButton
-            label={t("owner.openManifest")}
-            icon="groups"
-            iconPosition="left"
-            className="flex-1"
-            onPress={() => showToast("info", t("owner.manifestToast"), t("owner.manifestToastSub", { count: tripBookings.length }))}
+          <DetailRow
+            label={t("owner.toCollectAgency")}
+            value={`${(booked - paid).toLocaleString("en-US")} ${t("common.afn")}`}
+            tone="warning"
           />
-        </View>
+          <View className="h-[1px] bg-secBorder my-1" />
+          <DetailRow
+            label={t("owner.ifAllSeatsSell")}
+            value={`${allSold.toLocaleString("en-US")} ${t("common.afn")}`}
+            valueClassName="font-bold"
+          />
+        </Card>
+
+        <Card className="py-2">
+          <Text className="text-2xs font-bold uppercase tracking-[1.2px] text-muted">
+            {t("owner.actions")}
+          </Text>
+          {[
+            {
+              title: t("owner.messageAll"),
+              subtitle: t("owner.messageAllSub"),
+              onPress: () =>
+                showToast("success", t("owner.smsSent"), t("owner.messageAllSub")),
+            },
+            {
+              title: t("owner.moveTrip"),
+              subtitle: t("owner.moveTripSub"),
+              onPress: () => showToast("info", t("owner.moveTrip"), t("owner.moveTripSub")),
+            },
+            {
+              title: t("owner.closeBooking"),
+              subtitle: t("owner.closeBookingSub"),
+              onPress: () => showToast("info", t("owner.closeBooking"), t("owner.closeBookingSub")),
+            },
+          ].map((action) => (
+            <Ripple
+              key={action.title}
+              onPress={action.onPress}
+              accessibilityLabel={action.title}
+              className="flex-row items-center gap-3 py-3 border-t border-secBorder"
+            >
+              <View className="flex-1">
+                <Text className="text-base-lg font-semibold text-text">{action.title}</Text>
+                <Text className="text-sm text-secText mt-0.5" numberOfLines={1}>
+                  {action.subtitle}
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={20} color={colors.muted} />
+            </Ripple>
+          ))}
+        </Card>
+
+        <AppButton
+          label={t("owner.cancelTrip")}
+          variant="danger"
+          onPress={() => showToast("warning", t("owner.cancelTrip"), t("owner.tryAgain"))}
+        />
       </View>
     </Screen>
   );

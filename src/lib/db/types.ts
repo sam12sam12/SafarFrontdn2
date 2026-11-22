@@ -46,6 +46,14 @@ export type Driver = {
   vehicleColor?: string;
   nextServiceKm?: number;
   motValid?: string;
+  permitExpiry?: string;
+  licenceValid?: string;
+  inspectionKm?: number;
+  canTakeTrips?: boolean;
+  fatherName?: string;
+  tazkiraNo?: string;
+  licenceNo?: string;
+  nameRelation?: string;
   reviewCount?: number;
   online?: boolean;
   review?: DriverReview;

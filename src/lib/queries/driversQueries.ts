@@ -33,6 +33,13 @@ export type AddDriverInput = {
   phone: string;
   base: City;
   payPerTrip: number;
+  fatherName?: string;
+  tazkiraNo?: string;
+  licenceNo?: string;
+  licenceExpiry?: string;
+  permitExpiry?: string;
+  nameRelation?: string;
+  photoUri?: string;
 };
 
 export function useAddDriver() {
@@ -57,6 +64,13 @@ export function useAddDriver() {
         joinedLabel: "New",
         homeTerminal: input.base === "Kabul" ? "Kabul — Company Chowk" : "Kandahar (Eidgah Gate)",
         emergencyContact: "—",
+        fatherName: input.fatherName,
+        tazkiraNo: input.tazkiraNo,
+        licenceNo: input.licenceNo,
+        licenceValid: input.licenceExpiry,
+        permitExpiry: input.permitExpiry,
+        nameRelation: input.nameRelation,
+        photo: input.photoUri ? { uri: input.photoUri } : undefined,
       };
       db.drivers.unshift(driver);
       return driver;

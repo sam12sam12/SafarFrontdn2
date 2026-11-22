@@ -108,6 +108,11 @@ export const seedDrivers: Driver[] = [
     vehicleColor: "Silver",
     nextServiceKm: 186000,
     motValid: "Dec 2026",
+    permitExpiry: "12 Dec 2026",
+    licenceValid: "Mar 2028",
+    inspectionKm: 184326,
+    canTakeTrips: true,
+    nameRelation: "Brother",
     reviewCount: 96,
     online: true,
     review: {
