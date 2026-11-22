@@ -43,9 +43,10 @@ export default function ManageTripScreen() {
   const freeSeats = Math.max(0, (trip?.seatsTotal ?? 0) - (trip?.seatsBooked ?? 0));
   const allSold = booked + freeSeats * (trip?.price ?? 0);
 
-  const candidates = (drivers ?? []).filter(
-    (entry) => entry.base === trip?.from && (entry.status === "free" || entry.status === "trip-today"),
-  );
+  const inCity = (drivers ?? []).filter((entry) => entry.base === trip?.from);
+  const freeInCity = inCity.filter((entry) => entry.status === "free");
+  const candidates =
+    freeInCity.length > 0 ? freeInCity : inCity.filter((entry) => entry.status !== "on-road");
 
   if (tripQuery.isLoading || !trip) {
     return (

@@ -632,7 +632,7 @@
     "fareAfn": "کرایه (افغانی)",
     "serviceMode": "نوع خدمت",
     "sharedSeat": "چوکی شریک",
-    "vipWholeCar": "تمام موتر VIP",
+    "vipWholeCar": "خانواده VIP · تمام موتر",
     "sharedModeHint": "چهار چوکی جداگانه به فروش می‌رسد.",
     "vipModeHint": "چارتر تمام موتر · ۴ چوکی · کرایه ویژه.",
     "assignDriver": "تخصیص راننده",
@@ -925,6 +925,7 @@
     "cancel": "لغو",
     "addDriverSubmit": "+ افزودن راننده",
     "addPhoto": "افزودن عکس",
-    "addPhotoHint": "مسافران این عکس را روی ټکټ خود می‌بینند"
+    "addPhotoHint": "مسافران این عکس را روی ټکټ خود می‌بینند",
+    "newTag": "نوی"
   }
 }

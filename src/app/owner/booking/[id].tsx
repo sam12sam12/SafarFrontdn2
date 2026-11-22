@@ -132,7 +132,7 @@ export default function OwnerBookingDetailsScreen() {
         <Badge
           label={
             booking.status === "new"
-              ? t("owner.request")
+              ? t("owner.newTag")
               : booking.status === "confirmed"
                 ? t("owner.tabConfirmed")
                 : t("owner.tabCancelled")

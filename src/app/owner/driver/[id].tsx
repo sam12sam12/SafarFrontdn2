@@ -18,6 +18,8 @@ import { useTrips } from "@/lib/queries/tripsQueries";
 import { formatNumber } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
+const TODAY = "2026-11-19";
+
 export default function OwnerDriverProfileScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function OwnerDriverProfileScreen() {
 
   const month = (stats?.monthLabel ?? "").split("·")[1]?.trim() ?? "";
   const nextTrips = (trips ?? [])
-    .filter((trip) => trip.driverId === driver.id)
+    .filter((trip) => trip.driverId === driver.id && trip.date >= TODAY)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 4);
   const perTrip = stats?.trips ? Math.round(stats.earned / stats.trips) : 1500;

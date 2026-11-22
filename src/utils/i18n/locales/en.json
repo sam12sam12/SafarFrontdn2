@@ -632,7 +632,7 @@
     "fareAfn": "Fare (AFN)",
     "serviceMode": "Service mode",
     "sharedSeat": "Shared seat",
-    "vipWholeCar": "VIP whole car",
+    "vipWholeCar": "VIP family · whole car",
     "sharedModeHint": "Four individual seats sold separately.",
     "vipModeHint": "Whole-car charter · 4 seats · premium fare.",
     "assignDriver": "Assign a driver",
@@ -644,7 +644,7 @@
     "publishing": "Publishing departure…",
     "tripPublished": "Trip published",
     "couldNotPublish": "Could not publish",
-    "addDriverTitle": "Add a Driver",
+    "addDriverTitle": "Add a driver",
     "addDriverSubtitle": "Onboarding a new highway chauffeur",
     "chauffeurProfile": "Chauffeur profile",
     "chauffeurProfileHint": "NSIA verification and permit checks run after the profile is created.",
@@ -652,7 +652,7 @@
     "fullName": "Full name",
     "mobileNumber": "Mobile number",
     "vehiclePlate": "Vehicle plate",
-    "payPerTrip": "Pay per completed trip (AFN)",
+    "payPerTrip": "Pay per trip",
     "homeBase": "Home base",
     "homeBaseKandaharHint": "Assignments start from Aino Mina Terminal · Gate 3.",
     "homeBaseKabulHint": "Assignments start from Company Chowk · Gate 1.",
@@ -925,6 +925,7 @@
     "cancel": "Cancel",
     "addDriverSubmit": "+ Add driver",
     "addPhoto": "ADD PHOTO",
-    "addPhotoHint": "Passengers see this photo on their ticket"
+    "addPhotoHint": "Passengers see this photo on their ticket",
+    "newTag": "NEW"
   }
 }

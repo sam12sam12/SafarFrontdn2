@@ -632,7 +632,7 @@
     "fareAfn": "کرایه (AFN)",
     "serviceMode": "د خدمت ډول",
     "sharedSeat": "شریکه څوکۍ",
-    "vipWholeCar": "VIP ټوله موټر",
+    "vipWholeCar": "VIP کورنۍ · ټوله موټر",
     "sharedModeHint": "څلور جلا څوکۍ په جلا توګه پلورل کیږي.",
     "vipModeHint": "د ټولې موټرې چارتر · 4 څوکۍ · ویژه کرایه.",
     "assignDriver": "ډرایور وټاکئ",
@@ -925,6 +925,7 @@
     "cancel": "لغوه",
     "addDriverSubmit": "+ ډرایور اضافه کړئ",
     "addPhoto": "عکس اضافه کړئ",
-    "addPhotoHint": "مسافر دا عکس پر ټکټ ویني"
+    "addPhotoHint": "مسافر دا عکس پر ټکټ ویني",
+    "newTag": "نوی"
   }
 }

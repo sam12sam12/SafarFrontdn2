@@ -50,10 +50,11 @@ export default function ScheduleTripScreen() {
 
   const time = TIMES[timeIndex];
 
-  const availableDrivers = useMemo(
-    () => (drivers ?? []).filter((driver) => driver.status !== "on-road" && driver.base === from),
-    [drivers, from],
-  );
+  const availableDrivers = useMemo(() => {
+    const inCity = (drivers ?? []).filter((driver) => driver.base === from);
+    const freeInCity = inCity.filter((driver) => driver.status === "free");
+    return freeInCity.length > 0 ? freeInCity : inCity.filter((driver) => driver.status !== "on-road");
+  }, [drivers, from]);
 
   const dateLabel = useMemo(() => {
     const value = new Date(`${date}T00:00:00`);
