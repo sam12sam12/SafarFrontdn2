@@ -136,6 +136,20 @@ export default function BookingConfirmedScreen() {
                   label={t("confirmed.boardingPoint")}
                   value={trip.boardingPoint}
                 />
+                {booking.luggage ? (
+                  <DetailRow
+                    className="border-t border-border"
+                    label={t("confirmed.luggage")}
+                    value={booking.luggage}
+                  />
+                ) : null}
+                {booking.note ? (
+                  <DetailRow
+                    className="border-t border-border"
+                    label={t("confirmed.note")}
+                    value={booking.note}
+                  />
+                ) : null}
               </Card>
 
               <TripSummaryCard trip={trip} driver={driver ?? undefined} />

@@ -16,6 +16,7 @@ import { showToast } from "@/components/ui/Toast";
 import { MapPanel } from "@/components/passenger/MapPanel";
 import { MilestoneList } from "@/components/passenger/MilestoneList";
 import { TrackingSkeleton } from "@/components/skeletons/PassengerSkeletons";
+import { corridorStops } from "@/lib/corridor";
 import { useDriver } from "@/lib/queries/driversQueries";
 import { useTrip } from "@/lib/queries/tripsQueries";
 import { colors } from "@/utils/theme";
@@ -30,6 +31,34 @@ export default function TrackingScreen() {
   const { data: driver } = driverQuery;
 
   const progress = trip?.progress ?? 45;
+  // Milestones walk the corridor in this leg's direction, not a fixed Kanadahar → Kabul list.
+  const milestones = (trip ? corridorStops(trip) : []).map((stop, index, all) => ({
+    title:
+      stop.role === "origin"
+        ? t("trip.boarded")
+        : stop.role === "checkpoint"
+          ? t("trip.qalat")
+          : stop.role === "rest"
+            ? t("trip.ghazni")
+            : t("trip.terminalTitle", { city: t(`common.${stop.city.toLowerCase()}`) }),
+    detail:
+      stop.role === "origin"
+        ? trip!.boardingPoint
+        : stop.role === "checkpoint"
+          ? t("trip.qalatDetail")
+          : stop.role === "rest"
+            ? t("trip.ghazniDetail")
+            : t("trip.terminalDetail"),
+    time: `${stop.time} ${stop.period}`,
+    state:
+      index === 0
+        ? ("done" as const)
+        : index === all.length - 1
+          ? ("upcoming" as const)
+          : index === 2
+            ? ("active" as const)
+            : ("done" as const),
+  }));
 
   if (tripQuery.isLoading || !trip) {
     return (
@@ -87,7 +116,8 @@ export default function TrackingScreen() {
           <View className="flex-row items-center gap-2 mt-3 rounded-base bg-elevated border border-secBorder px-3 py-2.5">
             <Icon name="location-on" size={16} color={colors.primary} />
             <Text className="text-sm text-secText flex-1">
-              {trip.locationLabel ?? "Near Ghazni · 218 km from Kandahar"}
+              {trip.locationLabel ??
+                t("tracking.approxLocation", { city: t(`common.${trip.to.toLowerCase()}`) })}
             </Text>
             <Text className="text-sm font-bold text-text">85 km/h</Text>
           </View>
@@ -131,34 +161,7 @@ export default function TrackingScreen() {
             <Text className="text-lg font-bold text-text">{t("trip.milestones")}</Text>
             <Text className="text-sm font-semibold text-primary">{t("trip.liveLog")}</Text>
           </View>
-          <MilestoneList
-            items={[
-              {
-                title: t("trip.boarded"),
-                detail: trip.boardingPoint,
-                time: `${trip.departTime} ${trip.departPeriod}`,
-                state: "done",
-              },
-              {
-                title: t("trip.qalat"),
-                detail: t("trip.qalatDetail"),
-                time: "08:45 AM",
-                state: "done",
-              },
-              {
-                title: t("trip.ghazni"),
-                detail: t("trip.ghazniDetail"),
-                time: "11:00 AM",
-                state: "active",
-              },
-              {
-                title: t("trip.kabulTerminal"),
-                detail: t("trip.kabulDetail"),
-                time: `~${trip.arriveTime} ${trip.arrivePeriod}`,
-                state: "upcoming",
-              },
-            ]}
-          />
+          <MilestoneList items={milestones} />
         </Card>
 
         <View className="flex-row gap-2.5">

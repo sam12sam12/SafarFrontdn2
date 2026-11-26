@@ -8,13 +8,16 @@ import { ThemePicker } from "@/components/share/ThemePicker";
 import { ProfileSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
 import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { Section } from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
+import {
+  useDefaultPaymentMethod,
+  useSavedPassengers,
+} from "@/lib/queries/passengersQueries";
 import { useProfile } from "@/lib/queries/statsQueries";
 import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { useSessionStore } from "@/Stores/useSessionStore";
@@ -26,6 +29,8 @@ export default function PassengerProfileScreen() {
   const { t } = useTranslation();
   const profileQuery = useProfile();
   const { data: profile, isLoading } = profileQuery;
+  const passengersQuery = useSavedPassengers();
+  const { data: defaultPayment } = useDefaultPaymentMethod();
   const setRole = useSessionStore((state) => state.setRole);
 
   const theme = useThemeStore((state) => state.theme);
@@ -63,7 +68,7 @@ export default function PassengerProfileScreen() {
               <Text className="text-base text-secText mt-0.5">{profile?.phone}</Text>
             </View>
             <Ripple
-              onPress={() => showToast("info", t("profile.edit"), t("profile.editSub"))}
+              onPress={() => router.push("/passenger/profile-edit")}
               accessibilityLabel={t("profile.edit")}
               className="w-8 h-8 rounded-full bg-disable items-center justify-center"
             >
@@ -89,6 +94,28 @@ export default function PassengerProfileScreen() {
               subtitle={t("profile.languageSub")}
               value={languageLabel}
               onPress={() => setLanguagePicker(true)}
+            />
+            <Divider />
+            <SettingsRow
+              icon="group"
+              tone="blue"
+              title={t("savedPassengers.title")}
+              subtitle={t("savedPassengers.subtitle")}
+              value={String(passengersQuery.data?.length ?? profile?.savedPassengers ?? 0)}
+              onPress={() => router.push("/passenger/passengers")}
+            />
+            <Divider />
+            <SettingsRow
+              icon="credit-card"
+              tone="slate"
+              title={t("paymentMethods.title")}
+              subtitle={t("paymentMethods.note")}
+              value={
+                defaultPayment === "cash"
+                  ? t("paymentMethods.cash")
+                  : t("paymentMethods.hesabpay")
+              }
+              onPress={() => router.push("/passenger/payment-methods")}
             />
           </Card>
 

@@ -11,13 +11,16 @@ import { PaymentSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { SelectMenuSheet, type SelectOption } from "@/components/ui/SelectMenuSheet";
 import { showToast } from "@/components/ui/Toast";
 import type { PaymentMethod } from "@/lib/db/types";
 import { useCreateBooking } from "@/lib/queries/bookingsQueries";
 import { useDriver } from "@/lib/queries/driversQueries";
+import { useDefaultPaymentMethod } from "@/lib/queries/passengersQueries";
 import { useProfile } from "@/lib/queries/statsQueries";
 import { useSeatMap, useTrip } from "@/lib/queries/tripsQueries";
 import { dismissLoading, showLoading } from "@/Stores/useLoadingStore";
@@ -49,13 +52,17 @@ export default function PaymentsScreen() {
   const { data: trip } = tripQuery;
   const { data: seats } = seatsQuery;
   const { data: profile } = profileQuery;
+  const { data: defaultPayment } = useDefaultPaymentMethod();
   const { data: driver } = useDriver(trip?.driverId);
   const createBooking = useCreateBooking();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("0700 123 456");
   const [tazkira, setTazkira] = useState("TK-982410-KD");
-  const [payment, setPayment] = useState<PaymentMethod | null>(null);
+  const [paymentChoice, setPaymentChoice] = useState<PaymentMethod | null>(null);
+  const [luggage, setLuggage] = useState("0");
+  const [note, setNote] = useState("");
+  const [luggageSheet, setLuggageSheet] = useState(false);
   const prefilled = useRef(false);
 
   useEffect(() => {
@@ -64,6 +71,10 @@ export default function PaymentsScreen() {
     prefilled.current = true;
   }, [profile]);
 
+  // Preselect the passenger's default payment method once it loads.
+  // The saved default is preselected until the passenger picks another one.
+  const payment = paymentChoice ?? defaultPayment ?? null;
+
   const selectedSeats = useMemo(
     () => (seats ?? []).filter((seat) => seatIds.includes(seat.id)),
     [seats, seatIds],
@@ -71,6 +82,19 @@ export default function PaymentsScreen() {
   const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
   const usd = (total / 70.22).toFixed(2);
   const passengerName = name.trim() || profile?.name || "";
+
+  const LUGGAGE_OPTIONS: SelectOption<string>[] = ["0", "1", "2", "3", "4"].map((count) => ({
+    value: count,
+    label:
+      count === "0"
+        ? t("payment.luggageNone")
+        : t("payment.luggageBags", { count: Number(count) }),
+    icon: count === "0" ? "luggage" : "work",
+  }));
+  const luggageLabel =
+    luggage === "0"
+      ? t("payment.luggageNone")
+      : t("payment.luggageBags", { count: Number(luggage) });
 
   const [primaryLight, onPrimary] = useCSSVariable([
     "--color-primaryLight",
@@ -96,6 +120,8 @@ export default function PaymentsScreen() {
         name: passengerName,
         phone: phone.replace(/\s/g, ""),
         payment,
+        luggage: luggage === "0" ? undefined : luggageLabel,
+        note: note.trim() || undefined,
       });
       dismissLoading();
       router.replace({
@@ -223,15 +249,29 @@ export default function PaymentsScreen() {
               </View>
             </View>
 
-            <Ripple
-              onPress={() =>
-                showToast("info", t("payment.addMember"), t("payment.passengerSub"))
-              }
-              className="mt-3 flex-row items-center justify-center gap-2 rounded-md bg-disable py-3"
-            >
-              <Icon name="group-add" size={17} color={colors.primary} />
-              <Text className="text-base-lg font-semibold text-text">{t("payment.addMember")}</Text>
-            </Ripple>
+            <View className="mt-4">
+              <Text className="text-2xs font-bold uppercase tracking-[0.9px] text-muted mb-1.5">
+                {t("payment.luggage")}
+              </Text>
+              <Ripple
+                onPress={() => setLuggageSheet(true)}
+                accessibilityLabel={t("payment.luggage")}
+                className="flex-row items-center gap-2 rounded-base bg-elevated border border-secBorder px-2.5 py-2.5"
+              >
+                <Icon name="luggage" size={16} color={colors.secText} />
+                <Text className="flex-1 text-base-lg font-semibold text-text">{luggageLabel}</Text>
+                <Icon name="expand-more" size={18} color={colors.secText} />
+              </Ripple>
+            </View>
+
+            <Field
+              className="mt-3"
+              label={t("payment.note")}
+              placeholder={t("payment.notePlaceholder")}
+              value={note}
+              onChangeText={setNote}
+              multiline
+            />
           </Card>
 
           <View className="flex-row items-center gap-2 mt-1 px-1">
@@ -244,7 +284,7 @@ export default function PaymentsScreen() {
             return (
               <Ripple
                 key={method.value}
-                onPress={() => setPayment(method.value)}
+                onPress={() => setPaymentChoice(method.value)}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
                 accessibilityLabel={t(method.titleKey)}
@@ -280,6 +320,15 @@ export default function PaymentsScreen() {
           />
         </View>
       )}
+
+      <SelectMenuSheet
+        visible={luggageSheet}
+        onClose={() => setLuggageSheet(false)}
+        title={t("payment.luggage")}
+        options={LUGGAGE_OPTIONS}
+        value={luggage}
+        onSelect={setLuggage}
+      />
     </Screen>
   );
 }

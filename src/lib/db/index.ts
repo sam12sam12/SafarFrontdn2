@@ -1,6 +1,7 @@
 import {
   passengerProfile,
   seedBookings,
+  seedSavedPassengers,
   seedDriverStats,
   seedDrivers,
   seedNotifications,
@@ -15,6 +16,8 @@ import type {
   DriverStats,
   OwnerStats,
   PassengerProfile,
+  PaymentMethod,
+  SavedPassenger,
   Seat,
   SupportConversation,
   SupportMessage,
@@ -34,6 +37,8 @@ export const db: {
   ownerStats: OwnerStats;
   driverStats: DriverStats;
   profile: PassengerProfile;
+  savedPassengers: SavedPassenger[];
+  defaultPayment: PaymentMethod;
   notifications: AppNotification[];
   supportConversations: SupportConversation[];
 } = {
@@ -43,6 +48,8 @@ export const db: {
   ownerStats: { ...seedOwnerStats },
   driverStats: { ...seedDriverStats },
   profile: { ...passengerProfile },
+  savedPassengers: seedSavedPassengers.map((passenger) => ({ ...passenger })),
+  defaultPayment: "hesabpay",
   notifications: seedNotifications.map((item) => ({ ...item })),
   supportConversations: seedSupportConversations.map((thread) => ({
     ...thread,

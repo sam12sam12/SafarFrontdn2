@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { db, respond } from "@/lib/db";
+import { db, respond, wait } from "@/lib/db";
 import type { DriverStats, OwnerStats } from "@/lib/db/types";
+import { initialsOf } from "@/lib/format";
 import { queryKeys } from "./queryKeys";
 
 export type StatsRange = "week" | "month" | "year";
@@ -74,5 +75,33 @@ export function useProfile() {
   return useQuery({
     queryKey: queryKeys.profile,
     queryFn: () => respond(db.profile),
+  });
+}
+
+export type UpdateProfileInput = { name: string; phone: string; email: string };
+
+/** Renames the signed-in passenger. Bookings are scoped by passenger name in
+ * the mock DB, so existing rows are renamed with the profile to keep them. */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateProfileInput) => {
+      await wait(420);
+      const previous = db.profile.name;
+      const name = input.name.trim();
+      db.profile.name = name;
+      db.profile.phone = input.phone.trim();
+      db.profile.email = input.email.trim();
+      db.profile.initials = initialsOf(name);
+      db.bookings.forEach((booking) => {
+        if (booking.passengerName === previous) booking.passengerName = name;
+      });
+      return { ...db.profile };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile });
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+    },
   });
 }

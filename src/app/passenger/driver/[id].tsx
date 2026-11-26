@@ -1,23 +1,23 @@
-import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { DriverDetailsSkeleton as DriverSkeleton } from "@/components/skeletons/PassengerSkeletons";
+import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
-import { Ripple } from "@/components/ui/Ripple";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import { useDriver } from "@/lib/queries/driversQueries";
 import { colors } from "@/utils/theme";
 
 const CHECKS = [
   {
-    icon: "check-circle" as const,
+    icon: "verified-user" as const,
     tone: "bg-successSoft",
     color: colors.success,
     titleKey: "driverDetails.mot",
@@ -52,6 +52,7 @@ export default function DriverDetailsScreen() {
   const { data: driver } = driverQuery;
 
   const reviews = driver?.reviews ?? (driver?.review ? [driver.review] : []);
+  const reviewCount = driver?.reviewCount ?? reviews.length;
 
   return (
     <Screen
@@ -65,177 +66,235 @@ export default function DriverDetailsScreen() {
         <DriverSkeleton />
       ) : (
         <View className="px-4">
-          <Card>
-            <View className="flex-row items-center gap-4">
-              <Avatar initials={driver.initials} photo={driver.photo} size="2xl" verified />
-              <View className="flex-1">
-                <Text className="text-xl font-bold text-text" numberOfLines={1}>
-                  {driver.name}
-                </Text>
-                <Text className="text-sm text-secText mt-1">{t("driverDetails.role")}</Text>
-                <View className="flex-row items-center gap-1.5 mt-1">
-                  <Icon name="star" size={14} color={colors.warning} />
-                  <Text className="text-base-lg font-bold text-text">
-                    {driver.rating.toFixed(1)}
-                  </Text>
-                  <Text className="text-xs text-secText">
-                    • {t("driverDetails.tripsCompleted", { count: driver.totalTrips })}
-                  </Text>
-                </View>
-              </View>
-            </View>
+          {/* Captain card: identity, trust signals, then the two actions. */}
+          <Card className="items-center pt-5">
+            <Avatar
+              initials={driver.initials}
+              photo={driver.photo}
+              size="2xl"
+              verified
+              online={driver.online}
+            />
 
-            <View className="flex-row gap-2.5 w-full mt-4">
-              <Ripple
-                onPress={() => showToast("info", t("driverDetails.call"), driver.phone)}
-                accessibilityLabel={t("driverDetails.call")}
-                className="flex-1 flex-row items-center justify-center gap-2 rounded-md border border-primaryBorder py-3.5"
-              >
-                <Icon name="phone" size={17} color={colors.muted} />
-                <Text className="text-base-lg font-semibold text-muted">
-                  {t("driverDetails.call")}
-                </Text>
-              </Ripple>
-              <Ripple
-                onPress={() =>
-                  showToast("success", t("driverDetails.message"), t("driverDetails.role"))
-                }
-                accessibilityLabel={t("driverDetails.message")}
-                className="flex-1 flex-row items-center justify-center gap-2 rounded-md border border-border py-3.5"
-              >
-                <Icon name="chat-bubble-outline" size={17} color={colors.secText} />
-                <Text className="text-base-lg font-semibold text-secText">
-                  {t("driverDetails.message")}
-                </Text>
-              </Ripple>
-            </View>
-          </Card>
+            <Text className="text-xl font-bold text-text mt-3 text-center" numberOfLines={1}>
+              {driver.name}
+            </Text>
+            <Text className="text-sm text-secText mt-1">{t("driverDetails.role")}</Text>
 
-          <Card className="p-3 mt-3">
-            <View className="rounded-base overflow-hidden">
-              <Image
-                source={require("@/assets/images/car-hero.jpg")}
-                style={{ width: "100%", height: 158 }}
-                contentFit="cover"
+            <View className="flex-row items-center gap-2 mt-2.5">
+              <Badge
+                label={t(`common.${driver.base.toLowerCase()}`)}
+                tone="slate"
+                icon="place"
+                compact
               />
-              <View className="absolute right-2.5 bottom-2.5 flex-row items-center gap-1.5 bg-card/95 rounded-full px-2.5 py-1.5">
-                <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-                <Text className="text-sm font-semibold text-text">
-                  {t("home.liveTransit")}
-                </Text>
-              </View>
+              <Badge
+                label={driver.joinedLabel}
+                tone="blue"
+                icon="workspace-premium"
+                compact
+              />
             </View>
 
-            <View className="flex-row items-center justify-between mt-3 px-1">
-              <View>
-                <Text className="text-base-lg font-bold text-text">Toyota Fielder X 2018</Text>
-                <Text className="text-sm text-secText mt-0.5">{t("home.fleetSpec")}</Text>
-              </View>
-              <Badge label={t("home.vettedDriver")} tone="blue" icon="verified-user" />
+            <View className="flex-row items-stretch w-full mt-4 rounded-base bg-elevated border border-secBorder">
+              <Stat
+                label={t("driverDetails.statRating")}
+                value={driver.rating.toFixed(1)}
+                icon="star"
+                iconColor={colors.warning}
+              />
+              <View className="w-[1px] bg-secBorder my-2.5" />
+              <Stat
+                label={t("driverDetails.statTrips")}
+                value={String(driver.totalTrips)}
+              />
+              <View className="w-[1px] bg-secBorder my-2.5" />
+              <Stat
+                label={t("driverDetails.statReviews")}
+                value={String(reviewCount)}
+              />
             </View>
 
-            <View className="flex-row items-start justify-between mt-3 px-1 mb-1">
-              <View>
-                <Text className="text-2xs font-bold text-muted">{t("home.transitWindow")}</Text>
-                <Text className="text-base-lg font-bold text-primary mt-0.5">
-                  {t("home.transitTime")}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-2xs font-bold text-muted">{t("home.passengerCap")}</Text>
-                <Text className="text-base-lg font-bold text-text mt-0.5">
-                  {t("home.maxSeats")}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-2xs font-bold text-muted">{t("home.startingRate")}</Text>
-                <Text className="text-base-lg font-bold text-text mt-0.5">AFN 1,200</Text>
-              </View>
+            <View className="flex-row gap-2.5 w-full mt-4 mb-1">
+              <AppButton
+                className="flex-1"
+                label={t("driverDetails.call")}
+                icon="phone"
+                iconPosition="left"
+                onPress={() =>
+                  showToast("info", t("driverDetails.call"), driver.phone)
+                }
+              />
+              <AppButton
+                className="flex-1"
+                variant="ghost"
+                label={t("driverDetails.message")}
+                icon="chat-bubble-outline"
+                iconPosition="left"
+                onPress={() =>
+                  showToast("success", t("driverDetails.message"), t("driverDetails.messageSub"))
+                }
+              />
             </View>
           </Card>
 
-          <Card className="py-0 px-4 mt-3">
-            {CHECKS.map((check, index) => (
-              <View key={check.titleKey}>
-                <View className="flex-row items-center gap-3 py-3.5">
-                  <View
-                    className={`w-9 h-9 rounded-full items-center justify-center ${check.tone}`}
-                  >
-                    <Icon name={check.icon} size={18} color={check.color} />
+          {/* Contact & base — the practical details a passenger needs. */}
+          <Section title={t("driverDetails.contact")}>
+            <Card className="py-0 px-4">
+              <InfoRow
+                icon="phone"
+                tone="bg-primarySoft"
+                color={colors.primary}
+                label={t("driverDetails.phone")}
+                value={driver.phone}
+              />
+              <Divider />
+              <InfoRow
+                icon="place"
+                tone="bg-primarySoft"
+                color={colors.primary}
+                label={t("driverDetails.base")}
+                value={t(`common.${driver.base.toLowerCase()}`)}
+              />
+              <Divider />
+              <InfoRow
+                icon="home-work"
+                tone="bg-disable"
+                color={colors.secText}
+                label={t("driverDetails.terminal")}
+                value={driver.homeTerminal}
+              />
+            </Card>
+          </Section>
+
+          {/* Compliance: the checks that make the captain trustworthy. */}
+          <Section title={t("driverDetails.compliance")}>
+            <Card className="py-0 px-4">
+              {CHECKS.map((check, index) => (
+                <View key={check.titleKey}>
+                  <View className="flex-row items-center gap-3 py-3.5">
+                    <View
+                      className={`w-9 h-9 rounded-full items-center justify-center ${check.tone}`}
+                    >
+                      <Icon name={check.icon} size={18} color={check.color} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base-lg font-semibold text-text">
+                        {t(check.titleKey)}
+                      </Text>
+                      <Text className="text-sm text-secText mt-0.5 leading-4">
+                        {t(check.detailKey)}
+                      </Text>
+                    </View>
+                    {check.badgeKey ? (
+                      <Badge label={t(check.badgeKey)} tone={check.badgeTone} compact />
+                    ) : null}
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-base-lg font-semibold text-text">
-                      {t(check.titleKey)}
-                    </Text>
-                    <Text className="text-sm text-secText mt-0.5 leading-4">
-                      {t(check.detailKey)}
-                    </Text>
-                  </View>
-                  {check.badgeKey ? (
-                    <Badge label={t(check.badgeKey)} tone={check.badgeTone} compact />
-                  ) : null}
+                  {index < CHECKS.length - 1 ? <Divider /> : null}
                 </View>
-                {index < CHECKS.length - 1 ? <View className="h-[1px] bg-secBorder ml-12" /> : null}
-              </View>
-            ))}
-          </Card>
+              ))}
+            </Card>
+          </Section>
 
-          <View className="flex-row items-center justify-between mt-5 mb-2.5 px-1">
-            <View className="flex-row items-center gap-2">
-              <Icon name="star-border" size={19} color={colors.primary} />
-              <Text className="text-lg font-bold text-text">{t("driverDetails.reviews")}</Text>
-            </View>
-            <Ripple
-              onPress={() =>
-                showToast("info", t("driverDetails.reviews"), t("driverDetails.seeAll"))
-              }
-              accessibilityLabel={t("driverDetails.seeAll")}
-            >
-              <Text className="text-sm font-bold text-primary">{t("driverDetails.seeAll")}</Text>
-            </Ripple>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-3 pr-4"
+          <Section
+            title={t("driverDetails.reviews")}
+            action={reviews.length > 1 ? t("driverDetails.seeAll") : undefined}
+            onAction={() => showToast("info", t("driverDetails.reviews"), driver.name)}
           >
-            {reviews.map((review, index) => (
-              <Card key={`${review.author}-${index}`} className="p-4" style={{ width: 282 }}>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <Avatar initials={review.initials} size="sm" />
-                    <Text className="text-base-lg font-bold text-text">{review.author}</Text>
+            {reviews.length === 0 ? (
+              <Card flat>
+                <Text className="text-sm text-secText">{t("driverDetails.noReviews")}</Text>
+              </Card>
+            ) : (
+              reviews.map((review, index) => (
+                <Card key={`${review.author}-${index}`} className="p-4">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-2">
+                      <Avatar initials={review.initials} size="sm" />
+                      <View>
+                        <Text className="text-base-lg font-bold text-text" numberOfLines={1}>
+                          {review.author}
+                        </Text>
+                        <Text className="text-xs text-secText mt-0.5">{review.ago}</Text>
+                      </View>
+                    </View>
+                    <View className="flex-row items-center gap-1">
+                      <Icon name="star" size={13} color={colors.warning} />
+                      <Text className="text-sm font-bold text-text">{review.rating.toFixed(1)}</Text>
+                    </View>
                   </View>
-                  <View className="flex-row items-center gap-1">
-                    <Icon name="star" size={12} color={colors.warning} />
-                    <Text className="text-sm font-bold text-warning">
-                      {review.rating.toFixed(1)}
-                    </Text>
-                  </View>
-                </View>
 
-                <Text className="text-sm text-secText italic leading-5 mt-2.5">
-                  “{review.text}”
-                </Text>
+                  <Text className="text-sm text-secText leading-5 mt-2.5">“{review.text}”</Text>
 
-                <View className="flex-row items-center justify-between mt-3 pt-2.5 border-t border-secBorder">
-                  <View className="flex-row items-center gap-1.5">
-                    <View className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <View className="flex-row items-center gap-1.5 mt-3 pt-2.5 border-t border-secBorder">
+                    <Icon name="route" size={12} color={colors.muted} />
                     <Text className="text-xs text-secText">{review.route}</Text>
                   </View>
-                  <Text className="text-xs text-muted">{review.ago}</Text>
-                </View>
-              </Card>
-            ))}
-          </ScrollView>
+                </Card>
+              ))
+            )}
+          </Section>
 
-          <View className="flex-row items-center justify-center gap-1.5 mt-4">
+          <View className="flex-row items-center justify-center gap-1.5 mt-5">
             <Icon name="shield" size={13} color={colors.muted} />
-            <Text className="text-sm text-muted">{t("driverDetails.footer")}</Text>
+            <Text className="text-sm text-muted text-center">{t("driverDetails.footer")}</Text>
           </View>
         </View>
       )}
     </Screen>
   );
+}
+
+function Stat({
+  label,
+  value,
+  icon,
+  iconColor,
+}: {
+  label: string;
+  value: string;
+  icon?: IconName;
+  iconColor?: string;
+}) {
+  return (
+    <View className="flex-1 items-center py-2.5">
+      <View className="flex-row items-center gap-1">
+        {icon ? <Icon name={icon} size={12} color={iconColor ?? colors.secText} /> : null}
+        <Text className="text-base-lg font-bold text-text">{value}</Text>
+      </View>
+      <Text className="text-2xs font-semibold text-secText mt-0.5" numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function InfoRow({
+  icon,
+  tone,
+  color,
+  label,
+  value,
+}: {
+  icon: IconName;
+  tone: string;
+  color: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View className="flex-row items-center gap-3 py-3.5">
+      <View className={`w-9 h-9 rounded-full items-center justify-center ${tone}`}>
+        <Icon name={icon} size={17} color={color} />
+      </View>
+      <Text className="text-base text-secText flex-1">{label}</Text>
+      <Text className="text-base-lg font-semibold text-text text-right" numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function Divider() {
+  return <View className="h-[1px] bg-secBorder ms-12" />;
 }

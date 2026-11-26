@@ -24,7 +24,7 @@ type Props = {
 export function CancelledBookingCard({ booking, trip, driver, onBookAgain }: Props) {
   const { t, i18n } = useTranslation();
   const refunded = booking.paymentStatus === "paid";
-  const createdAt = booking.createdAt.slice(0, 10);
+  const cancelledAt = (booking.cancelledAt ?? booking.createdAt).slice(0, 10);
 
   return (
     <Card className="p-3.5">
@@ -36,7 +36,7 @@ export function CancelledBookingCard({ booking, trip, driver, onBookAgain }: Pro
           <View>
             <Text className="text-base-lg font-bold text-text">{booking.code}</Text>
             <Text className="text-xs text-secText mt-0.5">
-              {t("bookings.cancelledOn", { date: formatDateWithYear(createdAt, i18n.language) })}
+              {t("bookings.cancelledOn", { date: formatDateWithYear(cancelledAt, i18n.language) })}
             </Text>
           </View>
         </View>

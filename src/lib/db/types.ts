@@ -120,6 +120,12 @@ export type Booking = {
   status: BookingStatus;
   /** ISO datetime the booking was created — rendered relative per language. */
   createdAt: string;
+  /** ISO datetime the passenger called the booking off. */
+  cancelledAt?: string;
+  /** 1–5 stars the passenger gave the driver after the trip. */
+  rating?: number;
+  /** Optional review text that ships with the rating. */
+  review?: string;
   reference?: string;
   thirdTrip?: boolean;
   kids?: string;
@@ -160,6 +166,16 @@ export type DriverStats = {
   payouts: { id: string; label: string; meta: string; amount: number }[];
   lifetimeTrips: number;
   lifetimeKm: number;
+};
+
+export type SavedPassengerRelation = "family" | "friend" | "colleague";
+
+/** A companion the passenger books for regularly. */
+export type SavedPassenger = {
+  id: string;
+  name: string;
+  phone: string;
+  relation: SavedPassengerRelation;
 };
 
 export type PassengerProfile = {

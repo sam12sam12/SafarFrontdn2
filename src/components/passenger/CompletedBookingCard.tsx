@@ -6,16 +6,20 @@ import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
+import { Ripple } from "../ui/Ripple";
 import { RouteStrip } from "../ui/RouteStrip";
 import { formatDateWithYear } from "@/lib/dates";
+import { colors } from "@/utils/theme";
 
 type Props = {
   booking: Booking;
   trip: Trip;
   driver?: Driver;
+  onRate?: () => void;
+  onReceipt?: () => void;
 };
 
-export function CompletedBookingCard({ booking, trip, driver }: Props) {
+export function CompletedBookingCard({ booking, trip, driver, onRate, onReceipt }: Props) {
   const { t, i18n } = useTranslation();
 
   return (
@@ -81,6 +85,33 @@ export function CompletedBookingCard({ booking, trip, driver }: Props) {
             <Text className="text-2xs text-secText">{t("common.afn")}</Text>
           </View>
         </View>
+      </View>
+
+      <View className="flex-row gap-2 mt-3">
+        <Ripple
+          onPress={onReceipt}
+          accessibilityLabel={t("bookings.receipt")}
+          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-base border border-border bg-card py-2.5"
+        >
+          <Icon name="receipt-long" size={14} color={colors.secText} />
+          <Text className="text-sm font-bold text-text">{t("bookings.receipt")}</Text>
+        </Ripple>
+        <Ripple
+          onPress={onRate}
+          accessibilityLabel={t("bookings.rateTrip")}
+          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-base bg-primarySoft py-2.5"
+        >
+          <Icon
+            name={booking.rating ? "star" : "star-border"}
+            size={14}
+            color={colors.warning}
+          />
+          <Text className="text-sm font-bold text-primary">
+            {booking.rating
+              ? t("bookings.rated", { rating: booking.rating })
+              : t("bookings.rateTrip")}
+          </Text>
+        </Ripple>
       </View>
     </Card>
   );

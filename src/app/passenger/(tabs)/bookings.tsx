@@ -7,6 +7,7 @@ import { CancelledBookingCard } from "@/components/passenger/CancelledBookingCar
 import { CompletedBookingCard } from "@/components/passenger/CompletedBookingCard";
 import { NextTripCard } from "@/components/passenger/NextTripCard";
 import { BookingsSkeleton } from "@/components/skeletons/PassengerSkeletons";
+import { ConfirmSheet } from "@/components/ui/ConfirmSheet";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
@@ -14,7 +15,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Section } from "@/components/ui/Section";
 import { Segmented } from "@/components/ui/Segmented";
 import { showToast } from "@/components/ui/Toast";
-import { useBookings } from "@/lib/queries/bookingsQueries";
+import { useBookings, useCancelBooking } from "@/lib/queries/bookingsQueries";
 import { useDrivers } from "@/lib/queries/driversQueries";
 import { useTrips } from "@/lib/queries/tripsQueries";
 
@@ -24,8 +25,10 @@ export default function PassengerBookingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("all");
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const bookingsQuery = useBookings("passenger");
+  const cancelBooking = useCancelBooking();
   const tripsQuery = useTrips();
   const { data: drivers } = useDrivers();
 
@@ -94,6 +97,7 @@ export default function PassengerBookingsScreen() {
               onOpen={() =>
                 router.push({ pathname: "/passenger/trip/[id]", params: { id: nextTrip.id } })
               }
+              onCancel={() => setCancelOpen(true)}
             />
           ) : null}
 
@@ -122,6 +126,12 @@ export default function PassengerBookingsScreen() {
                     booking={booking}
                     trip={trip}
                     driver={drivers?.find((driver) => driver.id === trip.driverId)}
+                    onReceipt={() =>
+                      router.push({ pathname: "/passenger/receipt/[id]", params: { id: booking.id } })
+                    }
+                    onRate={() =>
+                      router.push({ pathname: "/passenger/rate/[id]", params: { id: booking.id } })
+                    }
                   />
                 );
               })}
@@ -168,6 +178,22 @@ export default function PassengerBookingsScreen() {
           </Ripple>
         </View>
       )}
+
+      <ConfirmSheet
+        visible={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        title={t("bookings.cancelTitle")}
+        message={t("bookings.cancelBody", { code: next?.code ?? "" })}
+        confirmLabel={t("bookings.cancelConfirm")}
+        cancelLabel={t("bookings.cancelKeep")}
+        onConfirm={() => {
+          if (!next) return;
+          cancelBooking.mutate(next.id, {
+            onSuccess: () =>
+              showToast("success", t("bookings.cancelledToast"), t("bookings.cancelledToastSub")),
+          });
+        }}
+      />
     </Screen>
   );
 }

@@ -153,6 +153,8 @@
     "ghazniDetail": "20-minute tea, refreshments & prayer interval",
     "kabulTerminal": "Kabul Company Chowk Terminal",
     "kabulDetail": "Final Arrival & Passenger Luggage Claim",
+    "terminalTitle": "{{city}} Terminal",
+    "terminalDetail": "Final arrival & passenger luggage claim",
     "stopBadge": "Stop (20m)",
     "seatsAvailable_one": "{{count}} seat available",
     "seatsAvailable_other": "{{count}} seats available",
@@ -223,7 +225,16 @@
     "refunded": "Refunded {{amount}}",
     "noCharge": "No charge — nothing to refund",
     "emptyCancelled": "Trips you call off are kept here with their refund status, so rebooking the same corridor takes one tap.",
-    "receiptReady": "{{code}} · PDF ready."
+    "receiptReady": "{{code}} · PDF ready.",
+    "cancelBooking": "Cancel booking",
+    "cancelTitle": "Cancel this booking?",
+    "cancelBody": "{{code}} will be cancelled and the seat released. Paid fares are refunded to your wallet.",
+    "cancelConfirm": "Yes, cancel booking",
+    "cancelKeep": "Keep my booking",
+    "cancelledToast": "Booking cancelled",
+    "cancelledToastSub": "The seat is released and your refund is on its way.",
+    "rateTrip": "Rate trip",
+    "rated": "Rated {{rating}}★"
   },
   "search": {
     "title": "Search Trips",
@@ -292,7 +303,13 @@
     "phonePlaceholder": "0700 123 456",
     "tazkiraPlaceholder": "TK-000000-KD",
     "failedTitle": "Payment did not go through",
-    "failedBody": "Nothing was charged. Please try again."
+    "failedBody": "Nothing was charged. Please try again.",
+    "luggage": "Luggage",
+    "luggageNone": "No extra bags",
+    "luggageBags_one": "{{count}} bag",
+    "luggageBags_other": "{{count}} bags",
+    "note": "Note for the driver (optional)",
+    "notePlaceholder": "e.g. 2 large bags — please keep a window seat free"
   },
   "confirmed": {
     "header": "Confirmation",
@@ -311,7 +328,9 @@
     "arriveEarly": "Arrive 30 minutes early",
     "arriveEarlySub": "Show your booking code at Gate {{gate}} by {{time}}.",
     "carryId": "Carry your Tazkira",
-    "carryIdSub": "Every passenger is checked at the Qalat security checkpoint."
+    "carryIdSub": "Every passenger is checked at the Qalat security checkpoint.",
+    "luggage": "Luggage",
+    "note": "Driver note"
   },
   "driverDetails": {
     "title": "Driver Details",
@@ -329,7 +348,17 @@
     "reviews": "Reviews",
     "seeAll": "See All",
     "footer": "Direct transit · Monitored via Highway GPS Corridor",
-    "tripsCompleted": "{{count}} trips completed"
+    "tripsCompleted": "{{count}} trips completed",
+    "contact": "Contact & base",
+    "phone": "Phone number",
+    "base": "Base city",
+    "terminal": "Home terminal",
+    "compliance": "Verified & compliant",
+    "statRating": "Rating",
+    "statTrips": "Trips",
+    "statReviews": "Reviews",
+    "messageSub": "Your message goes straight to the captain's app.",
+    "noReviews": "No reviews yet — this captain's first rating comes from a completed trip."
   },
   "tracking": {
     "title": "Live Highway Tracking",
@@ -342,7 +371,8 @@
     "messageSent": "Message sent",
     "messageSentSub": "The captain will reply shortly.",
     "shareSuccess": "Link copied",
-    "shareSuccessSub": "Family can follow this trip live."
+    "shareSuccessSub": "Family can follow this trip live.",
+    "approxLocation": "On Highway 1 · towards {{city}}"
   },
   "support": {
     "title": "Customer Support",
@@ -1027,5 +1057,65 @@
     "addPhoto": "ADD PHOTO",
     "addPhotoHint": "Passengers see this photo on their ticket",
     "newTag": "NEW"
+  },
+  "editProfile": {
+    "title": "Edit Profile",
+    "name": "Full name",
+    "phone": "Phone (+93)",
+    "email": "Email address",
+    "save": "Save changes",
+    "saved": "Profile updated",
+    "savedSub": "Your details are up to date.",
+    "nameRequired": "Enter your name",
+    "nameRequiredSub": "A name is required to issue tickets."
+  },
+  "savedPassengers": {
+    "title": "Saved passengers",
+    "subtitle": "Book for family without retyping their details",
+    "add": "Add passenger",
+    "name": "Passenger name",
+    "phone": "Phone number",
+    "relation": "Relation",
+    "family": "Family",
+    "friend": "Friend",
+    "colleague": "Colleague",
+    "remove": "Remove passenger",
+    "empty": "No saved passengers yet",
+    "emptySub": "Add the people you travel with to book for them faster.",
+    "added": "Passenger added",
+    "addedSub": "{{name}} is saved for faster booking.",
+    "removed": "Passenger removed"
+  },
+  "paymentMethods": {
+    "title": "Payment methods",
+    "default": "Default",
+    "hesabpay": "HesabPay",
+    "hesabpaySub": "Instant clearing from your domestic Afghan digital wallet.",
+    "cash": "Cash at terminal",
+    "cashSub": "Pay at the gate; your seat is held until the cutoff.",
+    "note": "Your default method is preselected at checkout."
+  },
+  "rate": {
+    "title": "Rate your trip",
+    "pickStars": "Pick a rating",
+    "pickStarsSub": "Tap the stars to rate your captain.",
+    "saved": "Thanks for the feedback",
+    "savedSub": "Your rating helps other travellers.",
+    "stars": "{{count}} stars",
+    "tapToRate": "Tap a star to rate",
+    "review": "Review (optional)",
+    "reviewPlaceholder": "Tell other passengers about the drive, the car and the captain.",
+    "submit": "Submit rating",
+    "label1": "Poor",
+    "label2": "Fair",
+    "label3": "Good",
+    "label4": "Great",
+    "label5": "Excellent"
+  },
+  "receipt": {
+    "title": "Receipt",
+    "footer": "This receipt is generated from your booking record.",
+    "share": "Share receipt",
+    "shareSub": "A copy goes to your saved contacts."
   }
 }

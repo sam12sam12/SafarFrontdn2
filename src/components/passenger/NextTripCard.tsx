@@ -17,9 +17,10 @@ type Props = {
   onCall: () => void;
   onShare: () => void;
   onOpen?: () => void;
+  onCancel?: () => void;
 };
 
-export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen }: Props) {
+export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen, onCancel }: Props) {
   const { t, i18n } = useTranslation();
   const [primaryDark, primary, primaryLight, onPrimary] = useCSSVariable([
     "--color-primaryDark",
@@ -183,6 +184,17 @@ export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen }:
         >
           <Text className="text-md font-bold text-primary">{t("common.tripDetails")}</Text>
           <Icon name="arrow-forward" size={17} color={primary} />
+        </Ripple>
+      ) : null}
+
+      {onCancel ? (
+        <Ripple
+          onPress={onCancel}
+          accessibilityLabel={t("bookings.cancelBooking")}
+          className="mt-2 flex-row items-center justify-center gap-1.5 rounded-md border border-card/20 bg-primaryDark/40 py-2.5"
+        >
+          <Icon name="cancel" size={13} color={onPrimary} />
+          <Text className="text-xs font-bold text-onPrimary">{t("bookings.cancelBooking")}</Text>
         </Ripple>
       ) : null}
     </LinearGradient>

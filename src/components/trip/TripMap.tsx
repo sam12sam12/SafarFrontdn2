@@ -1,19 +1,21 @@
 import { Image, type ImageSource } from "expo-image";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ImageSourcePropType } from "react-native";
 import { Text, View } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useCSSVariable } from "uniwind";
 
-import type { Driver } from "@/lib/db/types";
+import type { City, Driver } from "@/lib/db/types";
 
-// Highway 1 (Ring Road) corridor — fixed Kandahar → Kabul for now.
+// Highway 1 (Ring Road) — the corridor stops, drawn in the trip's direction.
 const KANDAHAR = { latitude: 31.6133, longitude: 65.7101 };
 const QALAT = { latitude: 32.1061, longitude: 66.907 };
 const GHAZNI = { latitude: 33.5486, longitude: 68.4231 };
 const KABUL = { latitude: 34.5553, longitude: 69.2075 };
-const ROUTE = [KANDAHAR, QALAT, GHAZNI, KABUL];
+const COORDS: Record<City, { latitude: number; longitude: number }> = {
+  Kandahar: KANDAHAR,
+  Kabul: KABUL,
+};
 
 // Region that frames the whole corridor with a little padding.
 const REGION = {
@@ -23,15 +25,20 @@ const REGION = {
   longitudeDelta: 5.0,
 };
 
-type Props = { height?: number; driver?: Driver };
+type Props = { height?: number; driver?: Driver; from?: City; to?: City };
 
-export function TripMap({ height = 180, driver }: Props) {
+export function TripMap({ height = 180, driver, from = "Kandahar", to = "Kabul" }: Props) {
   const { t } = useTranslation();
   const [primary, success, error] = useCSSVariable([
     "--color-primary",
     "--color-success",
     "--color-error",
   ]) as string[];
+
+  const route =
+    from === "Kabul" ? [KABUL, GHAZNI, QALAT, KANDAHAR] : [KANDAHAR, QALAT, GHAZNI, KABUL];
+  const origin = COORDS[from];
+  const destination = COORDS[to];
 
   return (
     <View style={{ height, borderRadius: 16, overflow: "hidden" }}>
@@ -44,17 +51,17 @@ export function TripMap({ height = 180, driver }: Props) {
         toolbarEnabled={false}
         loadingEnabled
       >
-        <Polyline coordinates={ROUTE} strokeColor={primary} strokeWidth={4} />
+        <Polyline coordinates={route} strokeColor={primary} strokeWidth={4} />
 
         {/* Start of the corridor: the driver's profile instead of a plain pin. */}
         {driver ? (
-          <DriverMarker driver={driver} ringColor={primary} />
+          <DriverMarker driver={driver} ringColor={primary} coordinate={origin} />
         ) : (
-          <Marker coordinate={KANDAHAR} title={t("common.kandahar")} pinColor={success} />
+          <Marker coordinate={origin} title={t(`common.${from.toLowerCase()}`)} pinColor={success} />
         )}
 
         {/* Destination stays a clean pin. */}
-        <Marker coordinate={KABUL} title={t("common.kabul")} pinColor={error} />
+        <Marker coordinate={destination} title={t(`common.${to.toLowerCase()}`)} pinColor={error} />
       </MapView>
     </View>
   );
@@ -62,14 +69,22 @@ export function TripMap({ height = 180, driver }: Props) {
 
 /** A circular driver avatar dropped at the start point, with a pointer tail so
  * the bottom tip lands on the exact coordinate. */
-function DriverMarker({ driver, ringColor }: { driver: Driver; ringColor: string }) {
+function DriverMarker({
+  driver,
+  ringColor,
+  coordinate,
+}: {
+  driver: Driver;
+  ringColor: string;
+  coordinate: { latitude: number; longitude: number };
+}) {
   // Re-render the marker bitmap until the photo has loaded, then freeze it so
   // the map stays smooth while panning (react-native-maps perf guidance).
   const [tracking, setTracking] = useState(true);
 
   return (
     <Marker
-      coordinate={KANDAHAR}
+      coordinate={coordinate}
       title={driver.name}
       description={driver.vehicleModel}
       anchor={{ x: 0.5, y: 1 }}

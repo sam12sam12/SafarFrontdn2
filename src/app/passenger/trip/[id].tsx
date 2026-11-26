@@ -11,6 +11,7 @@ import { AppHeader } from "@/components/ui/AppHeader";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Screen } from "@/components/ui/Screen";
+import { corridorStops } from "@/lib/corridor";
 import { seatAvailability } from "@/lib/db";
 import type { TripStatus } from "@/lib/db/types";
 import { useBookings } from "@/lib/queries/bookingsQueries";
@@ -42,8 +43,6 @@ export default function TripDetailsScreen() {
   const live = status === "on-road";
   const boarding = status === "boarding";
   const done = status === "completed";
-  const fromCity = trip ? t(`common.${trip.from.toLowerCase()}`) : t("common.kandahar");
-  const toCity = trip ? t(`common.${trip.to.toLowerCase()}`) : t("common.kabul");
   const departLabel = `${trip?.departTime ?? "06:30"} ${trip?.departPeriod ?? "AM"}`;
   const arriveLabel = `${trip?.arriveTime ?? "01:15"} ${trip?.arrivePeriod ?? "PM"}`;
 
@@ -56,17 +55,13 @@ export default function TripDetailsScreen() {
         ? ["active", "upcoming", "upcoming", "upcoming"]
         : ["upcoming", "upcoming", "upcoming", "upcoming"];
 
-  const stops = [
-    { city: fromCity, time: departLabel, state: stopStates[0] },
-    { city: t("common.qalat"), time: "08:45 AM", state: stopStates[1] },
-    {
-      city: t("common.ghazni"),
-      time: "11:00 AM",
-      state: stopStates[2],
-      note: stopStates[2] === "active" ? t("trip.stopBadge") : undefined,
-    },
-    { city: toCity, time: arriveLabel, state: stopStates[3] },
-  ];
+  // Stops follow the direction of this specific leg: Kandahar → Kabul or back.
+  const stops = (trip ? corridorStops(trip) : []).map((stop, index) => ({
+    city: t(`common.${stop.city.toLowerCase()}`),
+    time: `${stop.time} ${stop.period}`,
+    state: stopStates[index],
+    note: index === 2 && stopStates[2] === "active" ? t("trip.stopBadge") : undefined,
+  }));
 
   const footer = trip ? (
     <View className="absolute left-0 right-0 bottom-0 bg-card border-t border-border px-4 py-3 flex-row items-center justify-between">
@@ -143,7 +138,12 @@ export default function TripDetailsScreen() {
             dateText={formatTripDate(trip.date, i18n.language)}
           />
 
-          <TripMap height={190} driver={driver ?? undefined} />
+          <TripMap
+            height={190}
+            driver={driver ?? undefined}
+            from={trip.from}
+            to={trip.to}
+          />
 
           {live ? (
             <Card>

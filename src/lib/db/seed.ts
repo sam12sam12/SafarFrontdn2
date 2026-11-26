@@ -5,6 +5,7 @@ import type {
   DriverStats,
   OwnerStats,
   PassengerProfile,
+  SavedPassenger,
   SupportConversation,
   Trip,
 } from "./types";
@@ -26,6 +27,12 @@ export const passengerProfile: PassengerProfile = {
   savedPassengers: 3,
   joinedLabel: "Since '24",
 };
+
+export const seedSavedPassengers: SavedPassenger[] = [
+  { id: "sp-1", name: "Sadia Popalzai", phone: "0700 445 118", relation: "family" },
+  { id: "sp-2", name: "Wahidullah Popalzai", phone: "0788 220 907", relation: "family" },
+  { id: "sp-3", name: "Naveed Karimi", phone: "0799 845 102", relation: "friend" },
+];
 
 export const seedDrivers: Driver[] = [
   {
