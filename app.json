@@ -24,6 +24,11 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.sami.expresshighway",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA2ezWqVmL28XGCV2WaTG89KmIYsdsheLU"
+        }
+      },
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",

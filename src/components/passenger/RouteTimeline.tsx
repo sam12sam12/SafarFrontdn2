@@ -48,28 +48,22 @@ export function RouteTimeline({ stops, className }: Props) {
 
           return (
             <View key={stop.city} className="flex-1 items-center">
-              <View className="w-9 h-9 items-center justify-center">
-                {passed ? (
-                  <View className="w-2.5 h-2.5 rounded-full bg-primary" />
+              <View
+                className={cn(
+                  "w-9 h-9 rounded-full items-center justify-center border",
+                  active
+                    ? "bg-primary border-primary shadow-button shadow-buttonShadow"
+                    : done || passed
+                      ? "bg-primarySoft border-primaryBorder"
+                      : "bg-card border-border",
+                )}
+              >
+                {active ? (
+                  <Icon name="directions-car" size={16} color={colors.onPrimary} />
+                ) : done || passed ? (
+                  <Icon name="check" size={15} color={colors.primary} />
                 ) : (
-                  <View
-                    className={cn(
-                      "w-9 h-9 rounded-full items-center justify-center border",
-                      active
-                        ? "bg-primary border-primary shadow-button shadow-buttonShadow"
-                        : done
-                          ? "bg-primarySoft border-primaryBorder"
-                          : "bg-card border-border",
-                    )}
-                  >
-                    {active ? (
-                      <Icon name="directions-car" size={16} color={colors.onPrimary} />
-                    ) : done ? (
-                      <Icon name="check" size={15} color={colors.primary} />
-                    ) : (
-                      <Icon name="location-on" size={15} color={colors.muted} />
-                    )}
-                  </View>
+                  <Icon name="location-on" size={15} color={colors.muted} />
                 )}
               </View>
 
@@ -83,7 +77,11 @@ export function RouteTimeline({ stops, className }: Props) {
                 {stop.city}
               </Text>
 
-              {active && stop.note ? (
+              {passed ? (
+                <Text className="text-2xs mt-1 text-muted" numberOfLines={1}>
+                  {t("common.passed")}
+                </Text>
+              ) : active && stop.note ? (
                 <View className="mt-1 rounded-full bg-primarySoft px-2 py-0.5">
                   <Text className="text-2xs font-bold text-primary text-center" numberOfLines={1}>
                     {stop.note}
@@ -97,7 +95,7 @@ export function RouteTimeline({ stops, className }: Props) {
                   )}
                   numberOfLines={1}
                 >
-                  {passed ? t("common.passed") : stop.time}
+                  {stop.time}
                 </Text>
               )}
             </View>

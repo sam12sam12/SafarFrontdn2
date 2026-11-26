@@ -2,8 +2,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { MilestoneList } from "@/components/passenger/MilestoneList";
 import { RouteTimeline } from "@/components/passenger/RouteTimeline";
+import { TripMap } from "@/components/trip/TripMap";
 import { TripRouteHero } from "@/components/trip/TripRouteHero";
 import { TripDetailsSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
@@ -79,22 +79,15 @@ export default function TripDetailsScreen() {
 
   const stops = [
     { city: fromCity, time: departLabel, state: stopStates[0] },
-    { city: "Qalat", time: "08:45 AM", state: stopStates[1] },
+    { city: t("common.qalat"), time: "08:45 AM", state: stopStates[1] },
     {
-      city: "Ghazni",
+      city: t("common.ghazni"),
       time: "11:00 AM",
       state: stopStates[2],
       note: stopStates[2] === "active" ? t("trip.stopBadge") : undefined,
     },
     { city: toCity, time: arriveLabel, state: stopStates[3] },
   ];
-
-  const milestoneState = (index: number) => {
-    if (done) return "done" as const;
-    if (live) return (["done", "done", "active", "upcoming"] as const)[index];
-    if (boarding) return (["active", "upcoming", "upcoming", "upcoming"] as const)[index];
-    return "upcoming" as const;
-  };
 
   const footer = trip ? (
     <View className="absolute left-0 right-0 bottom-0 bg-card border-t border-border px-4 py-3 flex-row items-center justify-between">
@@ -182,6 +175,8 @@ export default function TripDetailsScreen() {
             ]}
           />
 
+          <TripMap height={190} />
+
           {live ? (
             <Card>
               <View className="flex-row items-start justify-between">
@@ -208,11 +203,7 @@ export default function TripDetailsScreen() {
                 </View>
               </View>
 
-              <View className="rounded-base bg-primarySoft/60 border border-secBorder p-3 mt-3">
-                <RouteTimeline stops={stops} className="mt-0" />
-              </View>
-
-              <View className="flex-row items-center justify-between mt-3">
+              <View className="flex-row items-center justify-between mt-3 rounded-base bg-primarySoft/60 border border-secBorder px-3 py-2.5">
                 <View className="flex-row items-center gap-1.5 flex-1">
                   <Icon name="local-cafe" size={15} color={colors.secText} />
                   <Text className="text-xs text-secText">
@@ -278,40 +269,14 @@ export default function TripDetailsScreen() {
           )}
 
           <Card>
-            <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center justify-between mb-1">
               <Text className="text-lg font-bold text-text">{t("trip.milestones")}</Text>
               <Text className="text-sm font-semibold text-primary">
                 {live ? t("trip.liveLog") : done ? t("trip.completed") : t("trip.scheduled")}
               </Text>
             </View>
-            <MilestoneList
-              items={[
-                {
-                  title: t("trip.boarded"),
-                  detail: trip.boardingPoint,
-                  time: departLabel,
-                  state: milestoneState(0),
-                },
-                {
-                  title: t("trip.qalat"),
-                  detail: t("trip.qalatDetail"),
-                  time: "08:45 AM",
-                  state: milestoneState(1),
-                },
-                {
-                  title: t("trip.ghazni"),
-                  detail: t("trip.ghazniDetail"),
-                  time: "11:00 AM",
-                  state: milestoneState(2),
-                },
-                {
-                  title: t("trip.kabulTerminal"),
-                  detail: t("trip.kabulDetail"),
-                  time: `~${arriveLabel}`,
-                  state: milestoneState(3),
-                },
-              ]}
-            />
+            {/* Brief, horizontal corridor strip — Kandahar · Qalat · Ghazni · Kabul */}
+            <RouteTimeline stops={stops} />
           </Card>
         </View>
       )}

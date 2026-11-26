@@ -60,6 +60,8 @@ export function TripDetailsSkeleton() {
         </View>
       </Card>
 
+      <Skeleton className="h-[190px] w-full rounded-xl" />
+
       <Card className="gap-3">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-8 w-36" />
