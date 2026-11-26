@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { seatAvailability } from "@/lib/db";
 import type { City, ServiceType } from "@/lib/db/types";
 import { useDrivers } from "@/lib/queries/driversQueries";
@@ -101,11 +102,7 @@ export default function SearchTripsScreen() {
         </Text>
       </View>
 
-      <View className="px-4 mt-3">
-        <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mb-2.5">
-          {t("search.quickFilters")}
-        </Text>
-
+      <Section title={t("search.quickFilters")} className="px-4 mt-3">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -143,8 +140,7 @@ export default function SearchTripsScreen() {
             );
           })}
         </ScrollView>
-
-      </View>
+      </Section>
 
       <View className="px-4 gap-3 mt-3">
         {isLoading ? (

@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import { Toggle } from "@/components/ui/Toggle";
 import { useProfile } from "@/lib/queries/statsQueries";
@@ -239,11 +240,7 @@ const TONE: Record<Tone, { bg: string; color: string }> = {
 };
 
 function SectionLabel({ label }: { label: string }) {
-  return (
-    <Text className="text-2xs font-bold uppercase tracking-[1.3px] text-muted mt-5 mb-2 px-1">
-      {label}
-    </Text>
-  );
+  return <Section title={label} className="mt-5 mb-2 px-1" />;
 }
 
 function Divider() {

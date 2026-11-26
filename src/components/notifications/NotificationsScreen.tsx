@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { Section as PageSection } from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import {
   useMarkAllRead,
@@ -82,7 +83,7 @@ export function NotificationsScreen({ role }: { role: NotificationRole }) {
           />
         </View>
       ) : (
-        <View className="px-4 gap-5">
+        <View className="px-4">
           {today.length > 0 ? (
             <Section title={t("notifications.today")} items={today} lng={i18n.language} onPress={(id) => markRead.mutate(id)} />
           ) : null}
@@ -107,14 +108,11 @@ function Section({
   onPress: (id: string) => void;
 }) {
   return (
-    <View>
-      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mb-2">{title}</Text>
-      <View className="gap-2.5">
-        {items.map((item) => (
-          <NotificationRow key={item.id} item={item} lng={lng} onPress={() => onPress(item.id)} />
-        ))}
-      </View>
-    </View>
+    <PageSection title={title} count={items.length}>
+      {items.map((item) => (
+        <NotificationRow key={item.id} item={item} lng={lng} onPress={() => onPress(item.id)} />
+      ))}
+    </PageSection>
   );
 }
 

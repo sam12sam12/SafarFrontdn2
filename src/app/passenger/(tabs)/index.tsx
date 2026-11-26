@@ -16,6 +16,7 @@ import { Icon } from "@/components/ui/Icon";
 import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { SelectMenuSheet, type SelectOption } from "@/components/ui/SelectMenuSheet";
 import {
   WhenFilterSheet,
@@ -232,11 +233,9 @@ export default function PassengerHomeScreen() {
           </LinearGradient>
 
           {/* Filters */}
-          <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-4 mb-2">
-            {t("home.filtersLabel")}
-          </Text>
           <ScrollView
             horizontal
+            className="mt-4"
             showsHorizontalScrollIndicator={false}
             contentContainerClassName="gap-2 pr-4 items-center"
           >
@@ -265,7 +264,7 @@ export default function PassengerHomeScreen() {
           </ScrollView>
 
           {/* Trips */}
-          <View className="gap-3 mt-3">
+          <Section title={t("common.allTrips")} count={results.length}>
             {results.length === 0 ? (
               <Card className="py-2">
                 <EmptyState
@@ -288,7 +287,7 @@ export default function PassengerHomeScreen() {
                 />
               ))
             )}
-          </View>
+          </Section>
 
           <Card flat className="mt-3 rounded-lg bg-disable border-transparent flex-row items-center gap-3 p-3.5">
             <View className="w-10 h-10 rounded-full bg-text items-center justify-center">

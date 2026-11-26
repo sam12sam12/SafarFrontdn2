@@ -15,6 +15,7 @@ import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { Segmented } from "@/components/ui/Segmented";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { showToast } from "@/components/ui/Toast";
@@ -185,16 +186,11 @@ export default function PassengerSupportScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerClassName="px-4 pb-6 gap-2.5"
           >
-            <View className="flex-row items-center gap-2 mb-0.5">
-              <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted">
-                {t("support.previous")}
-              </Text>
-              {conversations.length > 0 ? (
-                <View className="min-w-5 h-5 px-1.5 rounded-full bg-disable items-center justify-center">
-                  <Text className="text-2xs font-bold text-secText">{conversations.length}</Text>
-                </View>
-              ) : null}
-            </View>
+            <Section
+              title={t("support.previous")}
+              count={conversations.length}
+              className="mt-0 mb-1"
+            />
 
             {conversationsQuery.isLoading ? (
               <View className="gap-2.5">
