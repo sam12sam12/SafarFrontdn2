@@ -131,7 +131,6 @@ export default function SeatSelectionScreen() {
                 : undefined
             }
             dateText={formatTripDate(trip.date, i18n.language)}
-            tiles={[{ label: t("home.passengerCap"), value: String(trip.seatsTotal) }]}
           />
 
           <Card className="p-4">

@@ -41,8 +41,6 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
 
   const from = t(`common.${trip.from.toLowerCase()}`);
   const to = t(`common.${trip.to.toLowerCase()}`);
-  const fromPoint = trip.boardingPoint.split(" · ")[0];
-  const toPoint = trip.dropOffPoint.replace(" Terminal", "");
   const vip = trip.service === "vip";
   const vehicleModel = driver?.vehicleModel?.replace(/\s+\d{4}$/, "");
 
@@ -98,9 +96,6 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
             </Text>
             <Icon name="arrow-forward" size={13} color={onPrimary} />
           </View>
-          <Text className="text-2xs text-onPrimary/65 mt-0.5" numberOfLines={1}>
-            {fromPoint}
-          </Text>
         </View>
 
         <View className="items-center px-1 pt-1">
@@ -127,9 +122,6 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
             <Text className="text-xs font-semibold text-onPrimary/70">{trip.arrivePeriod}</Text>
           </View>
           <Text className="text-base-lg font-bold text-onPrimary mt-0.5">{to}</Text>
-          <Text className="text-2xs text-onPrimary/65 mt-0.5" numberOfLines={1}>
-            {toPoint}
-          </Text>
         </View>
       </View>
 

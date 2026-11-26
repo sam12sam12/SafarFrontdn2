@@ -8,7 +8,6 @@ import { TripRouteHero } from "@/components/trip/TripRouteHero";
 import { TripDetailsSkeleton } from "@/components/skeletons/PassengerSkeletons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Screen } from "@/components/ui/Screen";
@@ -20,26 +19,6 @@ import { useTrip } from "@/lib/queries/tripsQueries";
 import { formatTripDate } from "@/lib/dates";
 import { formatNumber } from "@/lib/format";
 import { colors } from "@/utils/theme";
-
-const STATUS_LABEL: Record<TripStatus, string> = {
-  scheduled: "trip.scheduled",
-  full: "common.soldOut",
-  boarding: "trip.boardingNow",
-  "on-road": "owner.statusOnRoad",
-  completed: "trip.completed",
-  draft: "owner.draftBadge",
-  "needs-driver": "owner.needsDriverBadge",
-};
-
-const STATUS_TONE: Record<TripStatus, BadgeTone> = {
-  scheduled: "blue",
-  full: "amber",
-  boarding: "green",
-  "on-road": "green",
-  completed: "slate",
-  draft: "slate",
-  "needs-driver": "amber",
-};
 
 type StopState = "done" | "passed" | "active" | "upcoming";
 
@@ -146,11 +125,7 @@ export default function TripDetailsScreen() {
       contentClassName="pb-28"
       footer={footer}
     >
-      <AppHeader
-        title={t("trip.title")}
-        subtitle={trip ? formatTripDate(trip.date, i18n.language) : undefined}
-        right={trip ? <Badge label={t(STATUS_LABEL[status])} tone={STATUS_TONE[status]} /> : undefined}
-      />
+      <AppHeader title={t("trip.title")} />
 
       {tripQuery.isLoading || !trip ? (
         <TripDetailsSkeleton />
