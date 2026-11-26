@@ -6,7 +6,6 @@ import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
 import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
-import { Ripple } from "../ui/Ripple";
 import { RouteStrip } from "../ui/RouteStrip";
 import { formatDateWithYear } from "@/lib/dates";
 
@@ -14,11 +13,9 @@ type Props = {
   booking: Booking;
   trip: Trip;
   driver?: Driver;
-  onReceipt: () => void;
-  onBookAgain: () => void;
 };
 
-export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookAgain }: Props) {
+export function CompletedBookingCard({ booking, trip, driver }: Props) {
   const { t, i18n } = useTranslation();
 
   return (
@@ -41,7 +38,7 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
                 {(driver?.rating ?? 4.9).toFixed(1)}
               </Text>
               <Text className="text-sm text-secText">
-                ({driver?.totalTrips ?? 184} trips)
+                ({t("trip.tripsCount", { count: driver?.totalTrips ?? 184 })})
               </Text>
             </View>
           </View>
@@ -67,8 +64,12 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
             <Icon name="directions-car" size={16} color="#1D4ED8" />
           </View>
           <View>
-            <Text className="text-base font-semibold text-text">Toyota Fielder</Text>
-            <Text className="text-xs text-secText">Plate {trip.vehiclePlate}</Text>
+            <Text className="text-base font-semibold text-text">
+              {(driver?.vehicleModel ?? "Toyota Fielder").replace(/\s+\d{4}$/, "")}
+            </Text>
+            <Text className="text-xs text-secText">
+              {t("trip.plate", { plate: trip.vehiclePlate })}
+            </Text>
           </View>
         </View>
         <View className="items-end">
@@ -80,26 +81,6 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
             <Text className="text-2xs text-secText">{t("common.afn")}</Text>
           </View>
         </View>
-      </View>
-
-      <View className="flex-row gap-2 mt-3">
-        <Ripple
-          onPress={onReceipt}
-          accessibilityLabel={t("bookings.receipt")}
-          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-base bg-primarySoft py-2.5"
-        >
-          <Icon name="receipt-long" size={14} color="#1D4ED8" />
-          <Text className="text-xs font-bold text-primary">{t("bookings.receipt")}</Text>
-        </Ripple>
-        <Ripple
-          onPress={onBookAgain}
-          disabled
-          accessibilityLabel={t("bookings.bookAgain")}
-          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-base bg-disable py-2.5"
-        >
-          <Icon name="lock" size={13} color="#94A3B8" />
-          <Text className="text-xs font-bold text-muted">{t("bookings.bookAgain")}</Text>
-        </Ripple>
       </View>
     </Card>
   );

@@ -42,7 +42,6 @@ export default function SearchTripsScreen() {
   const seats = Math.min(Math.max(Number(params.seats ?? 1) || 1, 1), 4);
 
   const [filter, setFilter] = useState<FilterValue>("earliest");
-  const [previewEmpty, setPreviewEmpty] = useState(false);
 
   const tripsQuery = useTrips({ from, to, service });
   const driversQuery = useDrivers();
@@ -50,20 +49,22 @@ export default function SearchTripsScreen() {
   const { data: drivers } = driversQuery;
 
   const results = useMemo(() => {
-    const items = (trips ?? []).filter(
-      (trip) => trip.status === "scheduled" && seatAvailability(trip.id) > 0,
-    );
-    const sorted =
-      filter === "price"
-        ? [...items].sort((a, b) => a.price - b.price)
-        : [...items].sort(
-            (a, b) =>
-              a.date.localeCompare(b.date) ||
-              a.departTime.localeCompare(b.departTime) ||
-              a.code.localeCompare(b.code),
-          );
-    return sorted.slice(0, 4);
-  }, [trips, filter]);
+    const items = (trips ?? []).filter((trip) => {
+      // Only open departures that can seat the whole party.
+      if (trip.status !== "scheduled" || seatAvailability(trip.id) < seats) return false;
+      // "AC Deluxe" is the VIP whole-car class — the only deluxe mode on this corridor.
+      if (filter === "ac" && trip.service !== "vip") return false;
+      return true;
+    });
+    return filter === "price"
+      ? [...items].sort((a, b) => a.price - b.price)
+      : [...items].sort(
+          (a, b) =>
+            a.date.localeCompare(b.date) ||
+            a.departTime.localeCompare(b.departTime) ||
+            a.code.localeCompare(b.code),
+        );
+  }, [trips, filter, seats]);
 
   const openSeats = (tripId: string) => {
     router.push({
@@ -72,7 +73,7 @@ export default function SearchTripsScreen() {
     });
   };
 
-  const showEmpty = previewEmpty || results.length === 0;
+  const showEmpty = results.length === 0;
 
   return (
     <Screen
@@ -85,23 +86,25 @@ export default function SearchTripsScreen() {
     >
       <AppHeader title={t("search.title")} />
 
-      <View className="px-4">
-        <View className="flex-row items-center justify-between mb-2.5">
-          <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted">
-            {t("search.quickFilters")}
+      {/* what was searched — direction + party size */}
+      <View className="px-4 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-1.5">
+          <Text className="text-sm font-bold text-text">{t(`common.${from.toLowerCase()}`)}</Text>
+          <Icon name="arrow-forward" size={13} color={colors.secText} />
+          <Text className="text-sm font-bold text-text">{t(`common.${to.toLowerCase()}`)}</Text>
+          <Text className="text-xs text-secText">
+            · {seats} {t("common.seats")}
           </Text>
-          <Ripple
-            onPress={() => setPreviewEmpty((value) => !value)}
-            accessibilityLabel={t("search.previewEmpty")}
-            className={cn(
-              "flex-row items-center gap-1 rounded-full px-2 py-1",
-              previewEmpty && "bg-primarySoft",
-            )}
-          >
-            <Icon name="tune" size={13} color={colors.primary} />
-            <Text className="text-xs font-semibold text-primary">{t("search.previewEmpty")}</Text>
-          </Ripple>
         </View>
+        <Text className="text-2xs font-semibold text-muted">
+          {t("search.results", { count: results.length })}
+        </Text>
+      </View>
+
+      <View className="px-4 mt-3">
+        <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mb-2.5">
+          {t("search.quickFilters")}
+        </Text>
 
         <ScrollView
           horizontal
@@ -143,7 +146,7 @@ export default function SearchTripsScreen() {
 
       </View>
 
-      <View className="px-4 gap-3 mt-2">
+      <View className="px-4 gap-3 mt-3">
         {isLoading ? (
           <SearchResultsSkeleton />
         ) : showEmpty ? (
@@ -152,8 +155,8 @@ export default function SearchTripsScreen() {
               icon="search-off"
               title={t("search.emptyTitle")}
               message={t("search.emptyMessage")}
-              actionLabel={previewEmpty ? t("search.emptyAction") : undefined}
-              onAction={() => setPreviewEmpty(false)}
+              actionLabel={filter === "ac" ? t("common.clearAll") : undefined}
+              onAction={filter === "ac" ? () => setFilter("earliest") : undefined}
             />
           </Card>
         ) : (

@@ -216,12 +216,18 @@
     "terminals": "عینو مینا · دروازه ۳",
     "terminalsTo": "شرکت چوک",
     "paid": "پرداخت",
-    "confirmed": "تأیید"
+    "confirmed": "تأیید",
+    "cancelledOn": "لغو شده در {{date}}",
+    "cancelledCount_one": "{{count}} لغوشده",
+    "cancelledCount_other": "{{count}} لغوشده",
+    "refunded": "بازپرداخت {{amount}}",
+    "noCharge": "پرداختی نبود — بازپرداختی لازم نیست",
+    "emptyCancelled": "سفرهای لغوشده با وضعیت بازپرداخت اینجا می‌مانند تا همین مسیر را با یک ضربه دوباره رزرو کنید.",
+    "receiptReady": "{{code}} · رسید آماده است."
   },
   "search": {
     "title": "جستجوی سفرها",
     "quickFilters": "فیلترهای سریع",
-    "previewEmpty": "پیش‌نمایش حالت خالی",
     "earliest": "زودترین",
     "lowestPrice": "کمترین قیمت",
     "acDeluxe": "ای‌سی دلوکس",
@@ -230,8 +236,7 @@
     "guaranteeTitle": "تضمین مسافر شاهراه ۱",
     "guaranteeSub": "رانندگان کاملاً تأییدشده، ناوگان تأییدشده تویوتا فیلدر.",
     "emptyTitle": "در این مسیر حرکتی نیست",
-    "emptyMessage": "حالت خدمات دیگر یا جهت مخالف را امتحان کنید.",
-    "emptyAction": "بستن پیش‌نمایش"
+    "emptyMessage": "حالت خدمات دیگر یا جهت مخالف را امتحان کنید."
   },
   "seats": {
     "title": "انتخاب چوکی",

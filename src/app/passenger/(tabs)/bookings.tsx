@@ -3,15 +3,15 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { BoardingPassCard } from "@/components/passenger/BoardingPassCard";
+import { CancelledBookingCard } from "@/components/passenger/CancelledBookingCard";
 import { CompletedBookingCard } from "@/components/passenger/CompletedBookingCard";
 import { NextTripCard } from "@/components/passenger/NextTripCard";
 import { BookingsSkeleton } from "@/components/skeletons/PassengerSkeletons";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
+import { Section } from "@/components/ui/Section";
 import { Segmented } from "@/components/ui/Segmented";
 import { showToast } from "@/components/ui/Toast";
 import { useBookings } from "@/lib/queries/bookingsQueries";
@@ -46,6 +46,21 @@ export default function PassengerBookingsScreen() {
     () => (bookings ?? []).filter((booking) => booking.status === "cancelled"),
     [bookings],
   );
+  const upcomingCount = useMemo(
+    () =>
+      (bookings ?? []).filter(
+        (booking) => booking.status === "confirmed" || booking.status === "new",
+      ).length,
+    [bookings],
+  );
+  const tabCount =
+    tab === "all"
+      ? (bookings ?? []).length
+      : tab === "completed"
+        ? completed.length
+        : tab === "cancelled"
+          ? cancelled.length
+          : upcomingCount;
 
   const findTrip = (tripId: string) => trips?.find((trip) => trip.id === tripId);
   const nextTrip = next ? findTrip(next.tripId) : undefined;
@@ -66,18 +81,12 @@ export default function PassengerBookingsScreen() {
 
   const nextTab = tab === "all" || tab === "upcoming";
   const showCompleted = tab === "all" || tab === "completed";
+  const showCancelled = tab === "all" || tab === "cancelled";
 
   return (
     <Screen refreshing={refreshing} onRefresh={refresh} contentClassName="pb-8">
-      <View className="px-4 pt-4 pb-3">
+      <View className="px-4 pt-4 pb-1">
         <Text className="text-xl font-bold text-text">{t("bookings.title")}</Text>
-      </View>
-
-      <View className="px-4">
-        <Segmented options={tabs} value={tab} onChange={setTab} compact />
-        <Text className="text-2xs text-muted text-right mt-2">
-          {t("bookings.count", { count: (bookings ?? []).filter((b) => b.status === "confirmed" || b.status === "new").length })}
-        </Text>
       </View>
 
       {bookingsQuery.isLoading ? (
@@ -85,50 +94,23 @@ export default function PassengerBookingsScreen() {
           <BookingsSkeleton />
         </View>
       ) : (
-        <View className="px-4 mt-2 gap-3">
+        <View className="px-4 gap-3">
+          {/* upcoming trip sits above the tabs */}
           {nextTab && next && nextTrip ? (
-            <>
-              <NextTripCard
-                booking={next}
-                trip={nextTrip}
-                driver={nextDriver}
-                onCall={() =>
-                  showToast("info", t("common.callDriver"), nextDriver?.phone ?? t("common.highwayCaptain"))
-                }
-                onShare={() =>
-                  showToast("success", t("common.shareTrip"), t("tracking.shareSuccessSub"))
-                }
-                onOpen={() =>
-                  router.push({ pathname: "/passenger/trip/[id]", params: { id: nextTrip.id } })
-                }
-              />
-              <BoardingPassCard booking={next} trip={nextTrip} />
-              <Card className="flex-row items-center gap-3 py-3.5">
-                <View className="w-9 h-9 rounded-full bg-primarySoft items-center justify-center">
-                  <Icon name="event-repeat" size={17} color="#1D4ED8" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base-lg font-bold text-text">
-                    {t("bookings.freeCancellation")}
-                  </Text>
-                  <Text className="text-sm text-secText mt-0.5">
-                    {t("bookings.freeCancellationSub")}
-                  </Text>
-                </View>
-                <Icon name="chevron-right" size={18} color="#94A3B8" />
-              </Card>
-              <Card className="flex-row items-center gap-3 py-3.5">
-                <View className="w-9 h-9 rounded-full bg-successSoft items-center justify-center">
-                  <Icon name="shield" size={17} color="#10B981" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base-lg font-bold text-text">{t("bookings.security")}</Text>
-                  <Text className="text-sm text-secText mt-0.5 leading-4">
-                    {t("bookings.securitySub")}
-                  </Text>
-                </View>
-              </Card>
-            </>
+            <NextTripCard
+              booking={next}
+              trip={nextTrip}
+              driver={nextDriver}
+              onCall={() =>
+                showToast("info", t("common.callDriver"), nextDriver?.phone ?? t("common.highwayCaptain"))
+              }
+              onShare={() =>
+                showToast("success", t("common.shareTrip"), t("tracking.shareSuccessSub"))
+              }
+              onOpen={() =>
+                router.push({ pathname: "/passenger/trip/[id]", params: { id: nextTrip.id } })
+              }
+            />
           ) : null}
 
           {nextTab && !next ? (
@@ -141,11 +123,15 @@ export default function PassengerBookingsScreen() {
             />
           ) : null}
 
+          <View className="mt-1">
+            <Segmented options={tabs} value={tab} onChange={setTab} compact />
+            <Text className="text-2xs text-muted text-right mt-2">
+              {t("bookings.count", { count: tabCount })}
+            </Text>
+          </View>
+
           {showCompleted && completed.length > 0 ? (
-            <View className="gap-3 mt-2">
-              <Text className="text-2xs text-muted text-right">
-                {t("bookings.completed", { count: completed.length })}
-              </Text>
+            <Section title={t("bookings.tabCompleted")} count={completed.length}>
               {completed.map((booking) => {
                 const trip = findTrip(booking.tripId);
                 if (!trip) return null;
@@ -155,21 +141,40 @@ export default function PassengerBookingsScreen() {
                     booking={booking}
                     trip={trip}
                     driver={drivers?.find((driver) => driver.id === trip.driverId)}
-                    onReceipt={() =>
-                      showToast("success", t("bookings.receipt"), `${booking.code} · PDF ready.`)
-                    }
-                    onBookAgain={() => undefined}
                   />
                 );
               })}
-            </View>
+            </Section>
+          ) : null}
+
+          {showCancelled && cancelled.length > 0 ? (
+            <Section title={t("bookings.tabCancelled")} count={cancelled.length}>
+              {cancelled.map((booking) => {
+                const trip = findTrip(booking.tripId);
+                if (!trip) return null;
+                return (
+                  <CancelledBookingCard
+                    key={booking.id}
+                    booking={booking}
+                    trip={trip}
+                    driver={drivers?.find((driver) => driver.id === trip.driverId)}
+                    onBookAgain={() =>
+                      router.push({
+                        pathname: "/passenger/search",
+                        params: { from: trip.from, to: trip.to },
+                      })
+                    }
+                  />
+                );
+              })}
+            </Section>
           ) : null}
 
           {tab === "cancelled" && cancelled.length === 0 ? (
             <EmptyState
               icon="cancel"
               title={t("bookings.tabCancelled")}
-              message="No cancelled bookings on this account."
+              message={t("bookings.emptyCancelled")}
             />
           ) : null}
 

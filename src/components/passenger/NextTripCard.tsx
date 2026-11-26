@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import type { Booking, Driver, Trip } from "@/lib/db/types";
-import { daysUntil } from "@/lib/dates";
+import { daysUntil, formatTripDate } from "@/lib/dates";
 import { to24Hour } from "@/lib/format";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [primaryDark, primary, primaryLight, onPrimary] = useCSSVariable([
     "--color-primaryDark",
     "--color-primary",
@@ -62,9 +62,13 @@ export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen }:
             <Text className="text-2xl font-bold text-onPrimary">{trip.departTime}</Text>
             <Text className="text-xs font-semibold text-onPrimary/70">{trip.departPeriod}</Text>
           </View>
-          <Text className="text-md font-bold text-onPrimary mt-0.5">
-            {t(`common.${trip.from.toLowerCase()}`)}
-          </Text>
+          {/* origin city + direction arrow — "Kandahar →" (flips in RTL) */}
+          <View className="flex-row items-center gap-1 mt-0.5">
+            <Text className="text-md font-bold text-onPrimary shrink" numberOfLines={1}>
+              {t(`common.${trip.from.toLowerCase()}`)}
+            </Text>
+            <Icon name="arrow-forward" size={13} color={onPrimary} />
+          </View>
         </View>
 
         <View className="items-center px-2 pt-1">
@@ -76,7 +80,9 @@ export function NextTripCard({ booking, trip, driver, onCall, onShare, onOpen }:
             <View className="w-9 h-0.5 bg-onPrimary/40" />
             <View className="w-1.5 h-1.5 rounded-full bg-onPrimary" />
           </View>
-          <Text className="text-2xs text-onPrimary/70 mt-1">{trip.distanceKm} km</Text>
+          <Text className="text-2xs font-semibold text-onPrimary/70 mt-1" numberOfLines={1}>
+            {formatTripDate(trip.date, i18n.language)}
+          </Text>
         </View>
 
         <View className="flex-1 items-end">

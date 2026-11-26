@@ -108,7 +108,6 @@ export default function DriverTripManifestScreen() {
                 label: t("driver.service"),
                 value: trip.service === "vip" ? t("driver.vipFamily") : t("driver.sharedVip"),
               },
-              { label: t("driver.vehicle"), value: trip.vehiclePlate },
               { label: t("driver.distance"), value: `${trip.distanceKm} km` },
             ]}
           />

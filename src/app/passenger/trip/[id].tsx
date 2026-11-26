@@ -166,13 +166,6 @@ export default function TripDetailsScreen() {
                 : undefined
             }
             dateText={formatTripDate(trip.date, i18n.language)}
-            tiles={[
-              {
-                label: t("driver.service"),
-                value: trip.service === "vip" ? t("driver.vipFamily") : t("driver.shared"),
-              },
-              { label: t("owner.vehicle"), value: trip.vehiclePlate },
-            ]}
           />
 
           <TripMap height={190} driver={driver ?? undefined} />

@@ -216,12 +216,18 @@
     "terminals": "عینو مینا · دروازه ۳",
     "terminalsTo": "شرکت چوک",
     "paid": "تادیه",
-    "confirmed": "تصدیق"
+    "confirmed": "تصدیق",
+    "cancelledOn": "د {{date}} لغوه شو",
+    "cancelledCount_one": "{{count}} لغوه شوي",
+    "cancelledCount_other": "{{count}} لغوه شوي",
+    "refunded": "بیرته ورکړل شو {{amount}}",
+    "noCharge": "تادیه نه وه شوې — بیرته ورکول نشته",
+    "emptyCancelled": "هغه سفرونه چې تاسو لغوه کوئ دلته د بیرته ورکړې له حالت سره پاتې کېږي، تر څو همدا لاره په یوه ټک سره بیا بک کړئ.",
+    "receiptReady": "{{code}} · رسید چمتو دی"
   },
   "search": {
     "title": "د سفرونو لټون",
     "quickFilters": "چټک فلټرونه",
-    "previewEmpty": "خالي حالت وګورئ",
     "earliest": "لومړنی",
     "lowestPrice": "ټیټ نرخ",
     "acDeluxe": "AC ډیلکس",
@@ -230,8 +236,7 @@
     "guaranteeTitle": "د Highway 1 مسافر تضمین",
     "guaranteeSub": "کلک تصدیق شوي ډرایوران، تصدیق شوې Toyota Fielder فلیټ.",
     "emptyTitle": "په دې لاره کې حرکت نشته",
-    "emptyMessage": "بل خدمت ډول یا مخالف لوری وګورئ.",
-    "emptyAction": "خالي حالت بند کړئ"
+    "emptyMessage": "بل خدمت ډول یا مخالف لوری وګورئ."
   },
   "seats": {
     "title": "د څوکۍ انتخاب",

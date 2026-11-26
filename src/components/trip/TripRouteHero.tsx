@@ -4,7 +4,9 @@ import { Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import type { Driver, Trip } from "@/lib/db/types";
+import { cn } from "@/utils/cn";
 import { Avatar } from "../ui/Avatar";
+import { Badge } from "../ui/Badge";
 import { Icon } from "../ui/Icon";
 import { Ripple } from "../ui/Ripple";
 
@@ -41,6 +43,8 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
   const to = t(`common.${trip.to.toLowerCase()}`);
   const fromPoint = trip.boardingPoint.split(" · ")[0];
   const toPoint = trip.dropOffPoint.replace(" Terminal", "");
+  const vip = trip.service === "vip";
+  const vehicleModel = driver?.vehicleModel?.replace(/\s+\d{4}$/, "");
 
   return (
     <LinearGradient
@@ -57,11 +61,14 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
           accessibilityLabel={driver.name}
           className="flex-row items-center gap-2.5 mb-3 pb-3 border-b border-card/15"
         >
-          <Avatar initials={driver.initials} photo={driver.photo} size="sm" verified />
+          <Avatar initials={driver.initials} photo={driver.photo} size="sm" />
           <View className="flex-1">
-            <Text className="text-sm font-bold text-onPrimary" numberOfLines={1}>
-              {driver.name}
-            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-sm font-bold text-onPrimary shrink" numberOfLines={1}>
+                {driver.name}
+              </Text>
+              <Icon name="verified" size={12} color={onPrimary} />
+            </View>
             <View className="flex-row items-center gap-1 mt-0.5">
               <Icon name="star" size={11} color="#FCD34D" />
               <Text className="text-2xs font-semibold text-onPrimary/85">
@@ -69,7 +76,12 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
               </Text>
             </View>
           </View>
-          {onDriverPress ? <Icon name="chevron-right" size={18} color={onPrimary} /> : null}
+          {/* service type — far corner, same placement as the passenger home card */}
+          <Badge
+            label={vip ? t("driver.vipFamily") : t("driver.shared")}
+            tone={vip ? "violet" : "blue"}
+            compact
+          />
         </Ripple>
       ) : null}
 
@@ -79,7 +91,13 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
             <Text className="text-2xl font-bold text-onPrimary">{trip.departTime}</Text>
             <Text className="text-xs font-semibold text-onPrimary/70">{trip.departPeriod}</Text>
           </View>
-          <Text className="text-base-lg font-bold text-onPrimary mt-0.5">{from}</Text>
+          {/* origin city + direction arrow — "Kandahar →" (flips in RTL) */}
+          <View className="flex-row items-center gap-1 mt-0.5">
+            <Text className="text-base-lg font-bold text-onPrimary shrink" numberOfLines={1}>
+              {from}
+            </Text>
+            <Icon name="arrow-forward" size={13} color={onPrimary} />
+          </View>
           <Text className="text-2xs text-onPrimary/65 mt-0.5" numberOfLines={1}>
             {fromPoint}
           </Text>
@@ -96,7 +114,11 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
             <View className="w-8 h-[1.5px] bg-card/40" />
             <View className="w-1.5 h-1.5 rounded-full bg-card/50 border border-card" />
           </View>
-          <Text className="text-2xs text-onPrimary/65 mt-1">{trip.distanceKm} km</Text>
+          {dateText ? (
+            <Text className="text-2xs text-onPrimary/70 font-semibold mt-1" numberOfLines={1}>
+              {dateText}
+            </Text>
+          ) : null}
         </View>
 
         <View className="flex-1 items-end">
@@ -110,13 +132,6 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
           </Text>
         </View>
       </View>
-
-      {dateText ? (
-        <View className="flex-row items-center justify-center gap-1.5 mt-3">
-          <Icon name="event" size={12} color={onPrimary} />
-          <Text className="text-xs font-semibold text-onPrimary/85">{dateText}</Text>
-        </View>
-      ) : null}
 
       {tiles && tiles.length > 0 ? (
         <View className="flex-row gap-2 mt-4">
@@ -135,6 +150,39 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, cl
           ))}
         </View>
       ) : null}
+
+      {/* car — always the last block of the card */}
+      <View className="flex-row items-center gap-2.5 mt-3 rounded-md bg-card/10 border border-card/15 px-2.5 py-2.5">
+        <View className="w-8 h-8 rounded-base bg-card/15 items-center justify-center">
+          <Icon name="directions-car" size={16} color={onPrimary} />
+        </View>
+        <View className="flex-1">
+          {vehicleModel ? (
+            <Text className="text-sm font-bold text-onPrimary" numberOfLines={1}>
+              {vehicleModel}
+            </Text>
+          ) : null}
+          <Text
+            className={cn(
+              "text-2xs text-onPrimary/70",
+              vehicleModel && "mt-0.5",
+            )}
+            numberOfLines={1}
+          >
+            {t("trip.plate", { plate: trip.vehiclePlate })}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <View className="flex-row items-center gap-1 rounded-full bg-card/15 border border-card/20 px-2 py-1">
+            <Icon name="ac-unit" size={11} color={onPrimary} />
+            <Text className="text-2xs font-semibold text-onPrimary">{t("common.ac")}</Text>
+          </View>
+          <View className="flex-row items-center gap-1 rounded-full bg-card/15 border border-card/20 px-2 py-1">
+            <Icon name="luggage" size={11} color={onPrimary} />
+            <Text className="text-2xs font-semibold text-onPrimary">{t("common.bags")}</Text>
+          </View>
+        </View>
+      </View>
     </LinearGradient>
   );
 }

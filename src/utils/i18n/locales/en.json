@@ -216,12 +216,18 @@
     "terminals": "Aino Mina · Gate 3",
     "terminalsTo": "Company Chowk",
     "paid": "Paid",
-    "confirmed": "Confirmed"
+    "confirmed": "Confirmed",
+    "cancelledOn": "Cancelled {{date}}",
+    "cancelledCount_one": "{{count}} cancelled",
+    "cancelledCount_other": "{{count}} cancelled",
+    "refunded": "Refunded {{amount}}",
+    "noCharge": "No charge — nothing to refund",
+    "emptyCancelled": "Trips you call off are kept here with their refund status, so rebooking the same corridor takes one tap.",
+    "receiptReady": "{{code}} · PDF ready."
   },
   "search": {
     "title": "Search Trips",
     "quickFilters": "QUICK FILTERS",
-    "previewEmpty": "Preview Empty State",
     "earliest": "Earliest",
     "lowestPrice": "Lowest Price",
     "acDeluxe": "AC Deluxe",
@@ -230,8 +236,7 @@
     "guaranteeTitle": "Highway 1 Passenger Guarantee",
     "guaranteeSub": "Strictly vetted drivers, verified Toyota Fielder fleet.",
     "emptyTitle": "No departures on this corridor",
-    "emptyMessage": "Try a different service mode or the opposite direction.",
-    "emptyAction": "Clear preview"
+    "emptyMessage": "Try a different service mode or the opposite direction."
   },
   "seats": {
     "title": "Seat Selection",
