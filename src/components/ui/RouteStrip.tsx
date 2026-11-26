@@ -40,9 +40,13 @@ export function RouteStrip({
           <Text className="text-xl font-bold text-text">{departTime}</Text>
           <Text className="text-sm font-semibold text-secText">{departPeriod}</Text>
         </View>
-        <Text className="text-sm font-semibold text-primary mt-0.5" numberOfLines={1}>
-          {fromCity}
-        </Text>
+        {/* origin city + direction arrow — "Kandahar →" (flips in RTL) */}
+        <View className="flex-row items-center gap-1 mt-0.5">
+          <Text className="text-sm font-bold text-primary shrink" numberOfLines={1}>
+            {fromCity}
+          </Text>
+          <Icon name="arrow-forward" size={12} color={colors.primary} />
+        </View>
       </View>
 
       <View className="flex-1 items-center px-1">
@@ -71,7 +75,7 @@ export function RouteStrip({
           <Text className="text-xl font-bold text-text">{arriveTime}</Text>
           <Text className="text-sm font-semibold text-secText">{arrivePeriod}</Text>
         </View>
-        <Text className="text-sm font-semibold text-primary mt-0.5" numberOfLines={1}>
+        <Text className="text-sm font-bold text-text mt-0.5" numberOfLines={1}>
           {toCity}
         </Text>
       </View>

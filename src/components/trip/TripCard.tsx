@@ -110,12 +110,7 @@ export function TripCard({
       >
         {/* driver — name + rating on the left, service badge on the far right */}
         <View className="flex-row items-center gap-3">
-          <Avatar
-            initials={driver?.initials ?? "—"}
-            photo={driver?.photo}
-            size="md"
-            verified={Boolean(driver) && !needsDriver}
-          />
+          <Avatar initials={driver?.initials ?? "—"} photo={driver?.photo} size="md" />
           <View className="flex-1">
             <View className="flex-row items-center gap-1.5">
               <Text className="text-md font-bold text-text" numberOfLines={1}>
