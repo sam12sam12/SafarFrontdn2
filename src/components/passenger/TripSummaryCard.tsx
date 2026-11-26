@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import type { Driver, Trip } from "@/lib/db/types";
+import { formatRelativeDay } from "@/lib/dates";
 import { colors } from "@/utils/theme";
 import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
@@ -17,7 +18,7 @@ type Props = {
 };
 
 export function TripSummaryCard({ trip, driver, className }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <Card className={className}>
@@ -47,6 +48,7 @@ export function TripSummaryCard({ trip, driver, className }: Props) {
         arriveTime={trip.arriveTime}
         arrivePeriod={trip.arrivePeriod}
         duration={trip.duration}
+        dateText={formatRelativeDay(trip.date, i18n.language)}
       />
 
       <View className="flex-row items-center justify-between mt-3">

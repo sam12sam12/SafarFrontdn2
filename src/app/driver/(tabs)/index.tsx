@@ -7,6 +7,7 @@ import { DriverAvatar } from "@/components/driver/DriverAvatar";
 import { DriverHeroCard, DriverScheduleCard } from "@/components/driver/DriverTripCards";
 import { DriverTripsSkeleton } from "@/components/skeletons/DriverSkeletons";
 import { Card } from "@/components/ui/Card";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { Icon } from "@/components/ui/Icon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
@@ -121,16 +122,12 @@ export default function DriverTripsScreen() {
                 {t("driver.salaam", { name: driver.name })}
               </Text>
             </View>
-            <Ripple
-              onPress={() => router.push("/driver/notifications")}
+            <HeaderIcon
+              icon="notifications-none"
               accessibilityLabel={t("notifications.title")}
-              className="w-10 h-10 rounded-full bg-card border border-border items-center justify-center"
-            >
-              <Icon name="notifications-none" size={21} color={colors.text} />
-              {unread > 0 ? (
-                <View className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-warning border border-card" />
-              ) : null}
-            </Ripple>
+              badge={unread > 0}
+              onPress={() => router.push("/driver/notifications")}
+            />
           </View>
 
           {nextTrip ? (

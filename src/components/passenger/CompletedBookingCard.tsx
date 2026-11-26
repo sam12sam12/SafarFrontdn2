@@ -46,10 +46,7 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
             </View>
           </View>
         </View>
-        <View className="items-end gap-1">
-          <Badge label={t("bookings.tabCompleted")} tone="green" icon="check-circle" compact />
-          <Text className="text-2xs text-muted">{formatDateWithYear(trip.date, i18n.language)}</Text>
-        </View>
+        <Badge label={t("bookings.tabCompleted")} tone="green" icon="check-circle" compact />
       </View>
 
       <RouteStrip
@@ -61,6 +58,7 @@ export function CompletedBookingCard({ booking, trip, driver, onReceipt, onBookA
         arriveTime={trip.arriveTime}
         arrivePeriod={trip.arrivePeriod}
         duration={trip.duration}
+        dateText={formatDateWithYear(trip.date, i18n.language)}
       />
 
       <View className="flex-row items-center justify-between mt-3">

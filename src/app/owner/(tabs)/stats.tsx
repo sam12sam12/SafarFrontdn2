@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { IconButton } from "@/components/ui/IconButton";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { BarChart, SplitBar } from "@/components/ui/Progress";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
@@ -42,7 +42,7 @@ export default function OwnerStatsScreen() {
       <Screen contentClassName="px-4 pb-8">
         <View className="flex-row items-center justify-between pt-3 pb-2">
           <Text className="text-3xl font-bold text-text">{t("owner.statsTitle")}</Text>
-          <IconButton icon="file-download" accessibilityLabel={t("owner.download")} variant="white" />
+          <HeaderIcon icon="file-download" accessibilityLabel={t("owner.download")} />
         </View>
         <OwnerStatsSkeleton />
       </Screen>
@@ -60,10 +60,9 @@ export default function OwnerStatsScreen() {
     >
       <View className="flex-row items-center justify-between pt-3 pb-2">
         <Text className="text-3xl font-bold text-text">{t("owner.statsTitle")}</Text>
-        <IconButton
+        <HeaderIcon
           icon="file-download"
           accessibilityLabel={t("owner.download")}
-          variant="white"
           onPress={() => showToast("info", t("owner.download"), t("owner.mockDisclaimer"))}
         />
       </View>

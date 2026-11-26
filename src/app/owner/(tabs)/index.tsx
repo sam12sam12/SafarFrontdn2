@@ -19,7 +19,7 @@ import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import { Field } from "@/components/ui/Field";
 import { FilterTriggerChip } from "@/components/ui/FilterTriggerChip";
 import { Icon } from "@/components/ui/Icon";
-import { IconButton } from "@/components/ui/IconButton";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
@@ -114,26 +114,18 @@ export default function OwnerTripsScreen() {
           </Text>
           <Text className="text-3xl font-bold text-text mt-1">{t("owner.tripsTitle")}</Text>
         </View>
-        <View className="flex-row items-center gap-2">
-          <IconButton
+        <View className="flex-row items-center gap-1">
+          <HeaderIcon
             icon="search"
             accessibilityLabel={t("owner.searchTrips")}
-            variant="white"
-            size="md"
             onPress={() => setSearchOpen((open) => !open)}
           />
-          <View>
-            <IconButton
-              icon="notifications-none"
-              accessibilityLabel={t("notifications.title")}
-              variant="white"
-              size="md"
-              onPress={() => router.push("/owner/notifications")}
-            />
-            {unread > 0 ? (
-              <View className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error border border-card" />
-            ) : null}
-          </View>
+          <HeaderIcon
+            icon="notifications-none"
+            accessibilityLabel={t("notifications.title")}
+            badge={unread > 0}
+            onPress={() => router.push("/owner/notifications")}
+          />
         </View>
       </View>
       {searchOpen ? (

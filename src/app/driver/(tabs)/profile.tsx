@@ -8,8 +8,8 @@ import { AppButton } from "@/components/ui/AppButton";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { Icon } from "@/components/ui/Icon";
-import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
 import { useDriver } from "@/lib/queries/driversQueries";
@@ -49,15 +49,15 @@ export default function DriverProfileScreen() {
             </Text>
             <Text className="text-2xl font-bold text-text mt-1">{t("driver.profile")}</Text>
           </View>
-          <View className="flex-row gap-2">
-            <CircleAction
+          <View className="flex-row gap-1">
+            <HeaderIcon
               icon="qr-code-2"
-              label={t("driver.qr")}
+              accessibilityLabel={t("driver.qr")}
               onPress={() => showToast("info", t("driver.qr"), t("driver.qrBody"))}
             />
-            <CircleAction
+            <HeaderIcon
               icon="settings"
-              label={t("driver.settings")}
+              accessibilityLabel={t("driver.settings")}
               onPress={() => showToast("info", t("driver.settings"), t("driver.settingsBody"))}
             />
           </View>
@@ -201,26 +201,6 @@ export default function DriverProfileScreen() {
         </Text>
       </View>
     </Screen>
-  );
-}
-
-function CircleAction({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: "qr-code-2" | "settings";
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Ripple
-      onPress={onPress}
-      accessibilityLabel={label}
-      className="w-9 h-9 rounded-full bg-card border border-border items-center justify-center"
-    >
-      <Icon name={icon} size={18} color={colors.text} />
-    </Ripple>
   );
 }
 

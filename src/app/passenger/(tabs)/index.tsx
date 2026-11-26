@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterTriggerChip } from "@/components/ui/FilterTriggerChip";
 import { Icon } from "@/components/ui/Icon";
-import { IconButton } from "@/components/ui/IconButton";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
 import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { SelectMenuSheet, type SelectOption } from "@/components/ui/SelectMenuSheet";
@@ -175,18 +175,12 @@ export default function PassengerHomeScreen() {
           </View>
           <Text className="text-lg font-bold text-text">Express Highway</Text>
         </View>
-        <View>
-          <IconButton
-            icon="notifications-none"
-            accessibilityLabel={t("notifications.title")}
-            variant="white"
-            size="sm"
-            onPress={() => router.push("/passenger/notifications")}
-          />
-          {unread > 0 ? (
-            <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error border border-card" />
-          ) : null}
-        </View>
+        <HeaderIcon
+          icon="notifications-none"
+          accessibilityLabel={t("notifications.title")}
+          badge={unread > 0}
+          onPress={() => router.push("/passenger/notifications")}
+        />
       </View>
 
       {isLoading && !trips ? (
