@@ -5,6 +5,7 @@ import {
   seedDrivers,
   seedNotifications,
   seedOwnerStats,
+  seedSupportConversations,
   seedTrips,
 } from "./seed";
 import type {
@@ -15,6 +16,8 @@ import type {
   OwnerStats,
   PassengerProfile,
   Seat,
+  SupportConversation,
+  SupportMessage,
   Trip,
 } from "./types";
 
@@ -32,6 +35,7 @@ export const db: {
   driverStats: DriverStats;
   profile: PassengerProfile;
   notifications: AppNotification[];
+  supportConversations: SupportConversation[];
 } = {
   trips: seedTrips.map((trip) => ({ ...trip })),
   drivers: seedDrivers.map((driver) => ({ ...driver })),
@@ -40,12 +44,60 @@ export const db: {
   driverStats: { ...seedDriverStats },
   profile: { ...passengerProfile },
   notifications: seedNotifications.map((item) => ({ ...item })),
+  supportConversations: seedSupportConversations.map((thread) => ({
+    ...thread,
+    messages: thread.messages.map((message) => ({ ...message })),
+  })),
 };
 
 let bookingSequence = 7785;
 
 export function nextBookingCode() {
   return `BK-${bookingSequence++}`;
+}
+
+let supportSequence = 3;
+
+/** The assistant's canned opener — stands in for a future AI/agent reply. */
+const SUPPORT_GREETING =
+  "Hello! Thanks for contacting Express Highway support 🙂 One of our agents will reply shortly. In the meantime, you can browse your bookings or check highway conditions in the app.";
+
+function makeMessage(sender: SupportMessage["sender"], text: string): SupportMessage {
+  return {
+    id: `sm-${Math.random().toString(36).slice(2, 10)}`,
+    sender,
+    text,
+    at: new Date().toISOString(),
+  };
+}
+
+/** Starts a new thread from the user's first question, with the assistant's
+ * greeting appended as the simulated first reply. Returns the new thread. */
+export function startSupportConversation(topic: string): SupportConversation {
+  const question = topic.trim();
+  const userMessage = makeMessage("user", question);
+  const conversation: SupportConversation = {
+    id: `sc-${supportSequence++}`,
+    topic: question,
+    handledBy: "assistant",
+    updatedAt: userMessage.at,
+    messages: [userMessage, makeMessage("assistant", SUPPORT_GREETING)],
+  };
+  conversation.updatedAt = conversation.messages[conversation.messages.length - 1].at;
+  db.supportConversations.unshift(conversation);
+  return conversation;
+}
+
+/** Appends the user's message to an existing thread plus the assistant's
+ * acknowledgement, keeping `updatedAt` in sync with the latest message. */
+export function appendSupportMessage(conversationId: string, text: string) {
+  const conversation = db.supportConversations.find((thread) => thread.id === conversationId);
+  if (!conversation) return undefined;
+  conversation.messages.push(makeMessage("user", text.trim()));
+  const reply = makeMessage("assistant", SUPPORT_GREETING);
+  conversation.messages.push(reply);
+  conversation.updatedAt = reply.at;
+  return conversation;
 }
 
 export function wait(ms = 380) {

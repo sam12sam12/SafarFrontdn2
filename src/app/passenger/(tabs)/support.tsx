@@ -1,160 +1,234 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useMemo, useRef, useState, type ComponentRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 
+import { SupportComposer } from "@/components/passenger/support/SupportComposer";
+import { SupportConversationCard } from "@/components/passenger/support/SupportConversationCard";
+import { SupportMessageBubble } from "@/components/passenger/support/SupportMessageBubble";
+import {
+  SupportSuggestions,
+  type SupportSuggestion,
+} from "@/components/passenger/support/SupportSuggestions";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
-import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
-import { NavRow } from "@/components/ui/DetailRow";
-import { Icon } from "@/components/ui/Icon";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Field } from "@/components/ui/Field";
 import { Screen } from "@/components/ui/Screen";
+import { Segmented } from "@/components/ui/Segmented";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { showToast } from "@/components/ui/Toast";
-import { colors } from "@/utils/theme";
+import {
+  useSendSupportMessage,
+  useStartSupportConversation,
+  useSupportConversation,
+  useSupportConversations,
+} from "@/lib/queries/supportQueries";
+
+type SupportTab = "ask" | "conversations";
+
+/** The suggestion prompts are interactive UI chrome (not seed content), so they
+ * go through `t()` like every other label and stay in locale parity. */
+const SUGGESTION_KEYS = ["q1", "q2", "q3", "q4"] as const;
 
 export default function PassengerSupportScreen() {
-  const router = useRouter();
   const { t } = useTranslation();
 
-  return (
-    <Screen contentClassName="px-4 pb-8">
-      <AppHeader title={t("support.title")} showBack={false} subtitle={t("support.subtitle")} />
+  const [tab, setTab] = useState<SupportTab>("ask");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [search, setSearch] = useState("");
+  /** The just-sent message, shown optimistically until the thread refetches. */
+  const [pending, setPending] = useState<string | null>(null);
 
-      <LinearGradient
-        colors={[colors.primaryDark, colors.primary, colors.primaryLight]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 20, padding: 18 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-1.5">
-            <View className="w-1.5 h-1.5 rounded-full bg-success" />
-            <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-onPrimary/70">
-              {t("support.liveDesk")}
+  const conversationsQuery = useSupportConversations();
+  const activeQuery = useSupportConversation(activeId ?? undefined);
+  const startConversation = useStartSupportConversation();
+  const sendMessage = useSendSupportMessage(activeId ?? "");
+
+  const sending = startConversation.isPending || sendMessage.isPending;
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+
+  const suggestions: SupportSuggestion[] = useMemo(
+    () => SUGGESTION_KEYS.map((key) => ({ id: key, question: t(`support.${key}`) })),
+    [t],
+  );
+
+  const conversations = useMemo(() => conversationsQuery.data ?? [], [conversationsQuery.data]);
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return conversations;
+    return conversations.filter(
+      (thread) =>
+        thread.topic.toLowerCase().includes(term) ||
+        thread.messages.some((message) => message.text.toLowerCase().includes(term)),
+    );
+  }, [conversations, search]);
+
+  const messages = activeId ? activeQuery.data?.messages ?? [] : [];
+
+  // Show the optimistic bubble until the refetched thread actually carries the
+  // sent message, so the chat never flashes empty between the two.
+  const showPending =
+    pending !== null && !messages.some((message) => message.sender === "user" && message.text === pending);
+
+  function send(text: string) {
+    const value = text.trim();
+    if (!value || sending) return;
+    setDraft("");
+    setPending(value);
+    if (activeId) {
+      sendMessage.mutate(value);
+    } else {
+      startConversation.mutate(value, {
+        onSuccess: (conversation) => {
+          if (conversation) setActiveId(conversation.id);
+        },
+      });
+    }
+  }
+
+  function startNewConversation() {
+    setActiveId(null);
+    setDraft("");
+    setPending(null);
+    setTab("ask");
+  }
+
+  function openConversation(id: string) {
+    setActiveId(id);
+    setPending(null);
+    setTab("ask");
+  }
+
+  return (
+    <Screen scroll={false}>
+      <AppHeader title={t("support.title")} subtitle={t("support.subtitle")} showBack={false} />
+
+      <View className="px-4 mb-3">
+        <Segmented<SupportTab>
+          value={tab}
+          onChange={setTab}
+          options={[
+            { label: t("support.tabAsk"), value: "ask" },
+            { label: t("support.tabConversations"), value: "conversations" },
+          ]}
+        />
+      </View>
+
+      {tab === "ask" ? (
+        <View className="flex-1">
+          <ScrollView
+            ref={scrollRef}
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="px-4 pb-2"
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          >
+            <Text className="text-2xl font-bold text-text">{t("support.chatTitle")}</Text>
+            <Text className="text-base text-secText mt-1 mb-4 leading-5">
+              {t("support.chatIntro")}
             </Text>
-          </View>
-          <Icon name="support-agent" size={22} color={colors.onPrimary} />
+
+            {activeId ? (
+              messages.map((message) => (
+                <SupportMessageBubble key={message.id} message={message} />
+              ))
+            ) : (
+              <SupportMessageBubble
+                message={{ id: "greeting", sender: "assistant", text: t("support.greeting"), at: "" }}
+              />
+            )}
+
+            {showPending ? (
+              <SupportMessageBubble
+                message={{ id: "pending", sender: "user", text: pending as string, at: "" }}
+              />
+            ) : null}
+          </ScrollView>
+
+          <KeyboardStickyView>
+            <View className="pt-3 border-t border-border">
+              <Text className="text-2xs font-semibold text-muted text-center mb-2.5 px-4">
+                {t("support.suggestionsHint")}
+              </Text>
+              <SupportSuggestions suggestions={suggestions} onSelect={send} />
+            </View>
+            <SupportComposer
+              value={draft}
+              onChangeText={setDraft}
+              onSend={() => send(draft)}
+              onAttach={() => showToast("info", t("support.attach"), t("support.attachToast"))}
+              sending={sending}
+            />
+          </KeyboardStickyView>
         </View>
-        <Text className="text-2xl font-bold text-onPrimary mt-3">{t("support.hotlineTitle")}</Text>
-        <Text className="text-base text-onPrimary/75 mt-1">{t("support.hotlineBody")}</Text>
-        <AppButton
-          label={t("support.callOperations")}
-          icon="phone"
-          iconPosition="left"
-          variant="secondary"
-          className="mt-4"
-          onPress={() => showToast("success", t("support.dialingTitle"), t("support.dialingBody"))}
-        />
-      </LinearGradient>
+      ) : (
+        <View className="flex-1">
+          <View className="px-4">
+            <Text className="text-2xl font-bold text-text">{t("support.conversationsTitle")}</Text>
+            <Text className="text-base text-secText mt-1 mb-3 leading-5">
+              {t("support.conversationsSubtitle")}
+            </Text>
+            <Field
+              icon="search"
+              placeholder={t("support.searchPlaceholder")}
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
 
-      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-5 mb-2 px-1">
-        {t("support.channels")}
-      </Text>
-      <View className="flex-row gap-2.5">
-        <ChannelCard icon="chat" title={t("support.whatsapp")} detail={t("support.whatsappDetail")} tone="green" />
-        <ChannelCard icon="send" title={t("support.telegram")} detail={t("support.telegramDetail")} tone="blue" />
-      </View>
-      <View className="flex-row gap-2.5 mt-2.5">
-        <ChannelCard icon="public" title={t("support.facebook")} detail="@AfghanIntercity" tone="blue" />
-        <ChannelCard icon="business-center" title={t("support.corporate")} detail={t("support.corporateDetail")} tone="slate" />
-      </View>
+          <ScrollView
+            className="flex-1 mt-4"
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="px-4 pb-6 gap-2.5"
+          >
+            <View className="flex-row items-center gap-2 mb-0.5">
+              <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted">
+                {t("support.previous")}
+              </Text>
+              {conversations.length > 0 ? (
+                <View className="min-w-5 h-5 px-1.5 rounded-full bg-disable items-center justify-center">
+                  <Text className="text-2xs font-bold text-secText">{conversations.length}</Text>
+                </View>
+              ) : null}
+            </View>
 
-      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-5 mb-2 px-1">
-        {t("support.conditions")}
-      </Text>
-      <Card className="gap-3">
-        <ConditionRow icon="check-circle" tone="success" title={t("support.ghazniClear")} detail={t("support.ghazniClearDetail")} />
-        <View className="h-[1px] bg-secBorder" />
-        <ConditionRow icon="schedule" tone="primary" title={t("support.departures")} detail={t("support.departuresDetail")} />
-        <View className="h-[1px] bg-secBorder" />
-        <ConditionRow icon="wb-sunny" tone="warning" title={t("support.weather")} detail={t("support.weatherDetail")} />
-      </Card>
+            {conversationsQuery.isLoading ? (
+              <View className="gap-2.5">
+                {[0, 1, 2].map((key) => (
+                  <Skeleton key={key} className="h-20 rounded-lg" />
+                ))}
+              </View>
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={search.trim() ? "search-off" : "chat-bubble-outline"}
+                title={search.trim() ? t("support.noResults") : t("support.emptyTitle")}
+                message={search.trim() ? undefined : t("support.emptyBody")}
+              />
+            ) : (
+              filtered.map((conversation) => (
+                <SupportConversationCard
+                  key={conversation.id}
+                  conversation={conversation}
+                  onPress={() => openConversation(conversation.id)}
+                />
+              ))
+            )}
+          </ScrollView>
 
-      <Text className="text-2xs font-bold uppercase tracking-[1.4px] text-muted mt-5 mb-2 px-1">
-        {t("support.faq")}
-      </Text>
-      <Card className="py-0 px-4">
-        <NavRow title={t("support.faqChange")} subtitle={t("support.faqChangeDetail")} onPress={() => showToast("info", t("support.faqChange"), t("support.faqChangeToast"))} />
-        <View className="h-[1px] bg-secBorder" />
-        <NavRow title={t("support.faqLuggage")} subtitle={t("support.faqLuggageDetail")} onPress={() => showToast("info", t("support.faqLuggage"), t("support.faqLuggageToast"))} />
-        <View className="h-[1px] bg-secBorder" />
-        <NavRow title={t("support.faqRefund")} subtitle={t("support.faqRefundDetail")} onPress={() => showToast("info", t("support.faqRefund"), t("support.faqRefundToast"))} />
-        <View className="h-[1px] bg-secBorder" />
-        <NavRow title={t("support.faqAbout")} subtitle={t("support.faqAboutDetail")} onPress={() => router.push("/passenger/about")} />
-      </Card>
-
-      <View className="flex-row items-center justify-center gap-2 mt-5">
-        <Badge label={t("support.gpsMonitored")} tone="blue" icon="gps-fixed" compact />
-        <Badge label={t("support.verifiedDrivers")} tone="green" icon="verified" compact />
-      </View>
-
-      <View className="flex-row items-center justify-center gap-1.5 mt-4">
-        <Icon name="lock" size={13} color={colors.muted} />
-        <Text className="text-sm text-muted">{t("support.dataFooter")}</Text>
-      </View>
+          <View className="px-4 py-3 border-t border-border bg-card">
+            <AppButton
+              label={t("support.newQuestion")}
+              icon="edit"
+              iconPosition="left"
+              onPress={startNewConversation}
+            />
+          </View>
+        </View>
+      )}
     </Screen>
-  );
-}
-
-function ChannelCard({
-  icon,
-  title,
-  detail,
-  tone,
-}: {
-  icon: "chat" | "send" | "public" | "business-center";
-  title: string;
-  detail: string;
-  tone: "green" | "blue" | "slate";
-}) {
-  return (
-    <View className="flex-1 rounded-lg bg-card border border-border p-3.5">
-      <View
-        className={`w-9 h-9 rounded-base items-center justify-center ${
-          tone === "green" ? "bg-successSoft" : tone === "blue" ? "bg-primarySoft" : "bg-disable"
-        }`}
-      >
-        <Icon
-          name={icon}
-          size={18}
-          color={tone === "green" ? colors.success : tone === "blue" ? colors.primary : colors.secText}
-        />
-      </View>
-      <Text className="text-base-lg font-bold text-text mt-2.5">{title}</Text>
-      <Text className="text-sm text-secText mt-0.5">{detail}</Text>
-    </View>
-  );
-}
-
-function ConditionRow({
-  icon,
-  tone,
-  title,
-  detail,
-}: {
-  icon: "check-circle" | "schedule" | "wb-sunny";
-  tone: "success" | "primary" | "warning";
-  title: string;
-  detail: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <View
-        className={`w-8 h-8 rounded-full items-center justify-center ${
-          tone === "success" ? "bg-successSoft" : tone === "primary" ? "bg-primarySoft" : "bg-warningSoft"
-        }`}
-      >
-        <Icon
-          name={icon}
-          size={16}
-          color={tone === "success" ? colors.success : tone === "primary" ? colors.primary : colors.warning}
-        />
-      </View>
-      <View className="flex-1">
-        <Text className="text-base-lg font-semibold text-text">{title}</Text>
-        <Text className="text-sm text-secText mt-0.5">{detail}</Text>
-      </View>
-    </View>
   );
 }

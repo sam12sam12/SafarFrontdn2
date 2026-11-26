@@ -102,6 +102,7 @@ export default function DriverTripManifestScreen() {
         <View className="px-4 gap-3">
           <TripRouteHero
             trip={trip}
+            dateText={formatTripDate(trip.date, i18n.language)}
             tiles={[
               {
                 label: t("driver.service"),

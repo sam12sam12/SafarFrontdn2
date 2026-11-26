@@ -172,6 +172,28 @@ export type PassengerProfile = {
   joinedLabel: string;
 };
 
+/** Who sent a support chat message. */
+export type SupportSender = "user" | "assistant";
+
+export type SupportMessage = {
+  id: string;
+  sender: SupportSender;
+  text: string;
+  /** ISO timestamp — formatted relative to the demo "now" at render time. */
+  at: string;
+};
+
+export type SupportConversation = {
+  id: string;
+  /** The opening question — doubles as the conversation's title. */
+  topic: string;
+  messages: SupportMessage[];
+  /** ISO timestamp of the latest message — drives list order and the time label. */
+  updatedAt: string;
+  /** Still answered by the AI assistant, or escalated to a human agent. */
+  handledBy: "assistant" | "agent";
+};
+
 export type NotificationRole = "passenger" | "driver" | "owner";
 
 export type NotificationTone = "primary" | "success" | "warning" | "error" | "slate";

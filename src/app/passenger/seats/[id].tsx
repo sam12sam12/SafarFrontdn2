@@ -14,6 +14,7 @@ import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { showToast } from "@/components/ui/Toast";
 import type { Seat } from "@/lib/db/types";
+import { formatTripDate } from "@/lib/dates";
 import { useDriver } from "@/lib/queries/driversQueries";
 import { useSeatMap, useTrip } from "@/lib/queries/tripsQueries";
 import { cn } from "@/utils/cn";
@@ -21,7 +22,7 @@ import { colors } from "@/utils/theme";
 
 export default function SeatSelectionScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useLocalSearchParams<{ id: string; seats?: string }>();
 
   const tripQuery = useTrip(params.id);
@@ -129,6 +130,7 @@ export default function SeatSelectionScreen() {
                     router.push({ pathname: "/passenger/driver/[id]", params: { id: trip.driverId! } })
                 : undefined
             }
+            dateText={formatTripDate(trip.date, i18n.language)}
             tiles={[
               {
                 label: t("driver.service"),

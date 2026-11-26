@@ -17,6 +17,8 @@ type Props = {
   onDriverPress?: () => void;
   /** Up to three stat tiles under the route (service, vehicle, distance…). */
   tiles?: HeroTile[];
+  /** Localized trip date, shown centered below the route line. */
+  dateText?: string;
   className?: string;
 };
 
@@ -26,7 +28,7 @@ type Props = {
  * a row of stat tiles. One shared header for the driver manifest, the passenger
  * trip details and the seat-selection screens.
  */
-export function TripRouteHero({ trip, driver, onDriverPress, tiles, className }: Props) {
+export function TripRouteHero({ trip, driver, onDriverPress, tiles, dateText, className }: Props) {
   const { t } = useTranslation();
   const [primaryDark, primary, primaryLight, onPrimary] = useCSSVariable([
     "--color-primaryDark",
@@ -108,6 +110,13 @@ export function TripRouteHero({ trip, driver, onDriverPress, tiles, className }:
           </Text>
         </View>
       </View>
+
+      {dateText ? (
+        <View className="flex-row items-center justify-center gap-1.5 mt-3">
+          <Icon name="event" size={12} color={onPrimary} />
+          <Text className="text-xs font-semibold text-onPrimary/85">{dateText}</Text>
+        </View>
+      ) : null}
 
       {tiles && tiles.length > 0 ? (
         <View className="flex-row gap-2 mt-4">

@@ -5,6 +5,7 @@ import type {
   DriverStats,
   OwnerStats,
   PassengerProfile,
+  SupportConversation,
   Trip,
 } from "./types";
 
@@ -1193,5 +1194,59 @@ export const seedNotifications: AppNotification[] = [
     body: "162,000 AFN across 10 drivers is scheduled for the November payout run via HesabPay.",
     at: "2026-11-16T11:00:00Z",
     read: true,
+  },
+];
+
+/**
+ * Past support threads. Message text is mock backend content (not UI chrome),
+ * so it stays hardcoded like the rest of the seed — the assistant replies here
+ * stand in for a future AI/agent response, not translated app copy.
+ */
+export const seedSupportConversations: SupportConversation[] = [
+  {
+    id: "sc-1",
+    topic: "How do I change or cancel a booking?",
+    handledBy: "assistant",
+    updatedAt: "2026-11-19T12:43:00Z",
+    messages: [
+      {
+        id: "sc-1-m1",
+        sender: "user",
+        text: "How do I change or cancel a booking?",
+        at: "2026-11-19T12:42:00Z",
+      },
+      {
+        id: "sc-1-m2",
+        sender: "assistant",
+        text: "Hello! Thanks for contacting Express Highway support 🙂 Open your ticket in Bookings, tap “Manage”, and pick a new departure. Changes are free up to 6 hours before the convoy leaves.",
+        at: "2026-11-19T12:43:00Z",
+      },
+    ],
+  },
+  {
+    id: "sc-2",
+    topic: "Where does the Kandahar convoy depart?",
+    handledBy: "agent",
+    updatedAt: "2026-11-18T09:12:00Z",
+    messages: [
+      {
+        id: "sc-2-m1",
+        sender: "user",
+        text: "Where does the Kandahar convoy depart?",
+        at: "2026-11-18T09:10:00Z",
+      },
+      {
+        id: "sc-2-m2",
+        sender: "assistant",
+        text: "Hello! Thanks for contacting Express Highway support 🙂 Let me connect you with an operator for the exact boarding point.",
+        at: "2026-11-18T09:11:00Z",
+      },
+      {
+        id: "sc-2-m3",
+        sender: "assistant",
+        text: "Kabul → Kandahar convoys board at Kote Sangi terminal, gate 3. Please arrive 30 minutes before your departure time.",
+        at: "2026-11-18T09:12:00Z",
+      },
+    ],
   },
 ];
