@@ -295,9 +295,23 @@
     "failedBody": "Nothing was charged. Please try again."
   },
   "confirmed": {
+    "header": "Confirmation",
     "badge": "VERIFIED & DISPATCHED",
     "title": "Booking Confirmed!",
-    "subtitle": "Your seat on {{from}} ⇄ {{to}} Highway 1 is secured."
+    "subtitle": "Your seat on {{from}} ⇄ {{to}} Highway 1 is secured.",
+    "bookingDetails": "Booking details",
+    "departure": "Departure",
+    "boardingPoint": "Boarding point",
+    "paymentSummary": "Payment summary",
+    "amount": "Amount",
+    "reference": "Reference",
+    "hesabpay": "HesabPay",
+    "cash": "Cash at terminal",
+    "beforeYouTravel": "Before you travel",
+    "arriveEarly": "Arrive 30 minutes early",
+    "arriveEarlySub": "Show your booking code at Gate {{gate}} by {{time}}.",
+    "carryId": "Carry your Tazkira",
+    "carryIdSub": "Every passenger is checked at the Qalat security checkpoint."
   },
   "driverDetails": {
     "title": "Driver Details",

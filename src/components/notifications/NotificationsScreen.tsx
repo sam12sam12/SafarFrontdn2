@@ -108,7 +108,7 @@ function Section({
   onPress: (id: string) => void;
 }) {
   return (
-    <PageSection title={title} count={items.length}>
+    <PageSection title={title}>
       {items.map((item) => (
         <NotificationRow key={item.id} item={item} lng={lng} onPress={() => onPress(item.id)} />
       ))}

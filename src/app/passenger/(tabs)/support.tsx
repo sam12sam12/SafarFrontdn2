@@ -186,11 +186,7 @@ export default function PassengerSupportScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerClassName="px-4 pb-6 gap-2.5"
           >
-            <Section
-              title={t("support.previous")}
-              count={conversations.length}
-              className="mt-0 mb-1"
-            />
+            <Section title={t("support.previous")} className="mt-0 mb-1" />
 
             {conversationsQuery.isLoading ? (
               <View className="gap-2.5">

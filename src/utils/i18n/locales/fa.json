@@ -295,9 +295,23 @@
     "failedBody": "هیچ مبلغی کسر نشد. لطفاً دوباره کوشش کنید."
   },
   "confirmed": {
+    "header": "تأیید رزرو",
     "badge": "تأییدشده و ارسال‌شده",
     "title": "رزرو تأیید شد!",
-    "subtitle": "چوکی شما در {{from}} ⇄ {{to}} شاهراه ۱ محفوظ است."
+    "subtitle": "چوکی شما در {{from}} ⇄ {{to}} شاهراه ۱ محفوظ است.",
+    "bookingDetails": "جزئیات رزرو",
+    "departure": "حرکت",
+    "boardingPoint": "جای سوارشدن",
+    "paymentSummary": "خلاصه پرداخت",
+    "amount": "مبلغ",
+    "reference": "مرجع",
+    "hesabpay": "حساب‌پی",
+    "cash": "نقد در ترمینل",
+    "beforeYouTravel": "پیش از سفر",
+    "arriveEarly": "۳۰ دقیقه پیشتر برسید",
+    "arriveEarlySub": "کود رزرو خود را تا {{time}} در دروازه {{gate}} نشان دهید.",
+    "carryId": "تذکره خود را همراه داشته باشید",
+    "carryIdSub": "هر مسافر در کنترول امنیتی قلات بررسی می‌شود."
   },
   "driverDetails": {
     "title": "جزئیات راننده",

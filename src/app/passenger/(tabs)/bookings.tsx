@@ -46,22 +46,6 @@ export default function PassengerBookingsScreen() {
     () => (bookings ?? []).filter((booking) => booking.status === "cancelled"),
     [bookings],
   );
-  const upcomingCount = useMemo(
-    () =>
-      (bookings ?? []).filter(
-        (booking) => booking.status === "confirmed" || booking.status === "new",
-      ).length,
-    [bookings],
-  );
-  const tabCount =
-    tab === "all"
-      ? (bookings ?? []).length
-      : tab === "completed"
-        ? completed.length
-        : tab === "cancelled"
-          ? cancelled.length
-          : upcomingCount;
-
   const findTrip = (tripId: string) => trips?.find((trip) => trip.id === tripId);
   const nextTrip = next ? findTrip(next.tripId) : undefined;
   const nextDriver = drivers?.find((driver) => driver.id === nextTrip?.driverId);
@@ -119,19 +103,16 @@ export default function PassengerBookingsScreen() {
               title={t("bookings.emptyTitle")}
               message={t("bookings.emptyMessage")}
               actionLabel={t("common.allTrips")}
-              onAction={() => router.push("/passenger/search")}
+              onAction={() => router.push("/passenger")}
             />
           ) : null}
 
           <View className="mt-1">
             <Segmented options={tabs} value={tab} onChange={setTab} compact />
-            <Text className="text-2xs text-muted text-right mt-2">
-              {t("bookings.count", { count: tabCount })}
-            </Text>
           </View>
 
           {showCompleted && completed.length > 0 ? (
-            <Section title={t("bookings.tabCompleted")} count={completed.length}>
+            <Section title={t("bookings.tabCompleted")}>
               {completed.map((booking) => {
                 const trip = findTrip(booking.tripId);
                 if (!trip) return null;
@@ -148,7 +129,7 @@ export default function PassengerBookingsScreen() {
           ) : null}
 
           {showCancelled && cancelled.length > 0 ? (
-            <Section title={t("bookings.tabCancelled")} count={cancelled.length}>
+            <Section title={t("bookings.tabCancelled")}>
               {cancelled.map((booking) => {
                 const trip = findTrip(booking.tripId);
                 if (!trip) return null;
@@ -158,12 +139,7 @@ export default function PassengerBookingsScreen() {
                     booking={booking}
                     trip={trip}
                     driver={drivers?.find((driver) => driver.id === trip.driverId)}
-                    onBookAgain={() =>
-                      router.push({
-                        pathname: "/passenger/search",
-                        params: { from: trip.from, to: trip.to },
-                      })
-                    }
+                    onBookAgain={() => router.push("/passenger")}
                   />
                 );
               })}
@@ -183,7 +159,7 @@ export default function PassengerBookingsScreen() {
           ) : null}
 
           <Ripple
-            onPress={() => router.push("/passenger/search")}
+            onPress={() => router.push("/passenger")}
             accessibilityLabel={t("common.allTrips")}
             className="flex-row items-center justify-center gap-2 rounded-full border border-primaryBorder py-3 mt-1"
           >

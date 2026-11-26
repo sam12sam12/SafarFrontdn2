@@ -295,9 +295,23 @@
     "failedBody": "هیڅ مبلغ نه دی اخیستل شوی. مهرباني وکړئ بیا هڅه وکړئ."
   },
   "confirmed": {
+    "header": "د بکینګ تصدیق",
     "badge": "تصدیق شوی او واستول شو",
     "title": "بکینګ تصدیق شو!",
-    "subtitle": "د {{from}} ⇄ {{to}} Highway 1 کې ستاسو څوکۍ خوندي ده."
+    "subtitle": "د {{from}} ⇄ {{to}} Highway 1 کې ستاسو څوکۍ خوندي ده.",
+    "bookingDetails": "د بکینګ جزئیات",
+    "departure": "حرکت",
+    "boardingPoint": "د سوارېدو ځای",
+    "paymentSummary": "د تادیې لنډیز",
+    "amount": "اندازه",
+    "reference": "حواله",
+    "hesabpay": "حساب پی",
+    "cash": "په ترمینل کې نغدی",
+    "beforeYouTravel": "له سفر مخکې",
+    "arriveEarly": "۳۰ دقیقې مخکې راشئ",
+    "arriveEarlySub": "خپل د بکینګ کوډ تر {{time}} پورې د دروازې {{gate}} کې وښایاست.",
+    "carryId": "خپله تذکره له ځان سره واخلئ",
+    "carryIdSub": "هر مسافر د قلات امنیتي کنټرول کې کتل کېږي."
   },
   "driverDetails": {
     "title": "د ډرایور جزئیات",

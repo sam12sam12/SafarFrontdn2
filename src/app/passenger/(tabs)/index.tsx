@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
-import { useCSSVariable } from "uniwind";
 
 import { SearchTripCard } from "@/components/passenger/SearchTripCard";
 import { SeatsPicker } from "@/components/passenger/SeatsPicker";
@@ -24,7 +23,7 @@ import {
   type WhenValue,
 } from "@/components/ui/WhenFilterSheet";
 import { seatAvailability } from "@/lib/db";
-import type { City, ServiceType } from "@/lib/db/types";
+import type { ServiceType } from "@/lib/db/types";
 import { formatRelativeDay, isPastDay, isSameDay } from "@/lib/dates";
 import { to24Hour } from "@/lib/format";
 import { useDrivers } from "@/lib/queries/driversQueries";
@@ -57,21 +56,11 @@ export default function PassengerHomeScreen() {
   const [whenSheet, setWhenSheet] = useState(false);
   const [sortSheet, setSortSheet] = useState(false);
 
-  const [primaryDark, primary, primaryLight] = useCSSVariable([
-    "--color-primaryDark",
-    "--color-primary",
-    "--color-primaryLight",
-  ]) as string[];
-
   const tripsQuery = useTrips();
   const driversQuery = useDrivers();
   const { data: trips, isLoading, isRefetching, refetch } = tripsQuery;
   const { data: drivers } = driversQuery;
   const { count: unread } = useUnreadCount("passenger");
-
-  // The route filter doubles as the from/to used when navigating into search.
-  const [navFrom, navTo]: [City, City] =
-    route === "to-kandahar" ? ["Kabul", "Kandahar"] : ["Kandahar", "Kabul"];
 
   const ROUTE_OPTIONS: SelectOption<RouteFilter>[] = [
     { value: "all", label: t("home.allDirections"), icon: "swap-horiz" },
@@ -189,82 +178,64 @@ export default function PassengerHomeScreen() {
       ) : (
         <View className="px-4">
           {/* Banner */}
-          <LinearGradient
-            colors={[primaryDark, primary, primaryLight]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="mt-3 overflow-hidden"
-            style={{ borderRadius: 18 }}
-          >
-            <View className="flex-row items-center">
-              <View className="flex-1 p-4 gap-1.5">
-                <View className="flex-row items-center gap-1.5 self-start rounded-full bg-card/15 border border-card/20 px-2.5 py-1">
-                  <Icon name="directions-car" size={11} color="#FFFFFF" />
-                  <Text className="text-2xs font-bold uppercase tracking-[0.9px] text-onPrimary">
-                    {t("common.directExpress")}
-                  </Text>
-                </View>
-                <Text className="text-xl font-bold text-onPrimary leading-6 mt-1">
-                  {t("home.bannerTitle")}
-                </Text>
-                <Text className="text-xs text-onPrimary/75" numberOfLines={1}>
-                  {t("home.fleetSubtitle")}
-                </Text>
-                <Ripple
-                  onPress={() =>
-                    router.push({ pathname: "/passenger/search", params: { from: navFrom, to: navTo } })
-                  }
-                  accessibilityLabel={t("common.allTrips")}
-                  className="self-start flex-row items-center gap-1.5 rounded-full bg-card px-3.5 py-2 mt-2 shadow-button shadow-buttonShadow"
-                >
-                  <Text className="text-sm font-bold text-primary">{t("common.allTrips")}</Text>
-                  <Icon name="arrow-forward" size={13} color={primary} />
-                </Ripple>
-              </View>
-
-              <View style={{ width: 132, height: 132 }}>
-                <Image
-                  source={require("@/assets/images/car-hero.jpg")}
-                  style={{ width: "100%", height: "100%" }}
-                  contentFit="cover"
-                />
-              </View>
-            </View>
-          </LinearGradient>
-
-          {/* Filters */}
-          <ScrollView
-            horizontal
-            className="mt-4"
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-2 pr-4 items-center"
-          >
-            <FilterTriggerChip icon="swap-horiz" label={routeLabel} active={route !== "all"} onPress={() => setRouteSheet(true)} />
-            <FilterTriggerChip icon="sell" label={serviceLabel} active={service !== "all"} onPress={() => setServiceSheet(true)} />
-            <FilterTriggerChip
-              icon="airline-seat-recline-normal"
-              label={`${seats} ${t("common.seats")}`}
-              active={seats > 1}
-              onPress={() => setSeatsSheet(true)}
+          <View className="mt-3 overflow-hidden bg-text" style={{ borderRadius: 18, height: 200 }}>
+            <Image
+              source={require("@/assets/images/car-hero.png")}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+              contentFit="cover"
             />
-            <FilterTriggerChip icon="event" label={whenLabel} active={whenActive} onPress={() => setWhenSheet(true)} />
-            <FilterTriggerChip icon="sort" label={sortLabel} active={sort !== "earliest"} onPress={() => setSortSheet(true)} />
-            {anyFilterActive ? (
-              <Ripple
-                onPress={clearAllFilters}
-                accessibilityLabel={t("common.clearAll")}
-                className="flex-row items-center gap-1.5 rounded-full border-2 border-error/40 bg-errorSoft px-3.5 py-1.5"
-              >
-                <Icon name="restart-alt" size={14} color={colors.error} />
-                <Text className="text-base-lg font-semibold text-error whitespace-nowrap">
-                  {t("common.clearAll")}
+            <LinearGradient
+              colors={[colors.text, "transparent"]}
+              start={{ x: 0.15, y: 1 }}
+              end={{ x: 0.75, y: 0.2 }}
+              className="flex-1 justify-end p-4"
+            >
+              <View className="flex-row items-center gap-1.5 self-start rounded-full bg-card/15 border border-card/25 px-2.5 py-1">
+                <Icon name="directions-car" size={11} color={colors.onPrimary} />
+                <Text className="text-2xs font-bold uppercase tracking-[0.9px] text-onPrimary">
+                  {t("common.directExpress")}
                 </Text>
-              </Ripple>
-            ) : null}
-          </ScrollView>
+              </View>
+              <Text className="text-2xl font-bold text-onPrimary leading-7 mt-2">
+                {t("home.bannerTitle")}
+              </Text>
+              <Text className="text-sm text-onPrimary/80 mt-1" numberOfLines={1}>
+                {t("home.fleetSubtitle")}
+              </Text>
+            </LinearGradient>
+          </View>
 
-          {/* Trips */}
-          <Section title={t("common.allTrips")} count={results.length}>
+          <Section title={t("common.allTrips")}>
+            {/* Filters — sit under the section title, right above the results */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-2 pr-4 items-center"
+            >
+              <FilterTriggerChip icon="swap-horiz" label={routeLabel} active={route !== "all"} onPress={() => setRouteSheet(true)} />
+              <FilterTriggerChip icon="sell" label={serviceLabel} active={service !== "all"} onPress={() => setServiceSheet(true)} />
+              <FilterTriggerChip
+                icon="airline-seat-recline-normal"
+                label={`${seats} ${seats === 1 ? t("common.seat") : t("common.seats")}`}
+                active={seats > 1}
+                onPress={() => setSeatsSheet(true)}
+              />
+              <FilterTriggerChip icon="event" label={whenLabel} active={whenActive} onPress={() => setWhenSheet(true)} />
+              <FilterTriggerChip icon="sort" label={sortLabel} active={sort !== "earliest"} onPress={() => setSortSheet(true)} />
+              {anyFilterActive ? (
+                <Ripple
+                  onPress={clearAllFilters}
+                  accessibilityLabel={t("common.clearAll")}
+                  className="flex-row items-center gap-1.5 rounded-full border-2 border-error/40 bg-errorSoft px-3.5 py-1.5"
+                >
+                  <Icon name="restart-alt" size={14} color={colors.error} />
+                  <Text className="text-base-lg font-semibold text-error whitespace-nowrap">
+                    {t("common.clearAll")}
+                  </Text>
+                </Ripple>
+              ) : null}
+            </ScrollView>
+
             {results.length === 0 ? (
               <Card className="py-2">
                 <EmptyState

@@ -15,7 +15,6 @@ import { Ripple } from "@/components/ui/Ripple";
 import { Screen } from "@/components/ui/Screen";
 import { Section } from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
-import { Toggle } from "@/components/ui/Toggle";
 import { useProfile } from "@/lib/queries/statsQueries";
 import { useLanguageStore } from "@/Stores/useLanguageStore";
 import { useSessionStore } from "@/Stores/useSessionStore";
@@ -31,7 +30,6 @@ export default function PassengerProfileScreen() {
 
   const theme = useThemeStore((state) => state.theme);
   const language = useLanguageStore((state) => state.language);
-  const [biometric, setBiometric] = useState(true);
   const [themePicker, setThemePicker] = useState(false);
   const [languagePicker, setLanguagePicker] = useState(false);
 
@@ -92,45 +90,6 @@ export default function PassengerProfileScreen() {
               value={languageLabel}
               onPress={() => setLanguagePicker(true)}
             />
-            <Divider />
-            <SettingsRow
-              icon="notifications-none"
-              tone="slate"
-              title={t("profile.notifications")}
-              subtitle={t("profile.notificationsSub")}
-              onPress={() =>
-                showToast("info", t("profile.notifications"), t("profile.notificationsSub"))
-              }
-            />
-          </Card>
-
-          <SectionLabel label={t("profile.safety")} />
-          <Card className="py-0 px-4">
-            <SettingsRow
-              icon="contact-emergency"
-              tone="red"
-              title={t("profile.emergency")}
-              subtitle={t("profile.emergencySub")}
-              value={t("profile.configured")}
-              valueTone="success"
-              onPress={() =>
-                showToast("success", t("profile.emergency"), "Abdul Popalzai · 0700 555 210")
-              }
-            />
-            <Divider />
-            <SettingsRow
-              icon="fingerprint"
-              tone="blue"
-              title={t("profile.biometric")}
-              subtitle={t("profile.biometricSub")}
-              right={
-                <Toggle
-                  value={biometric}
-                  onChange={setBiometric}
-                  accessibilityLabel={t("profile.biometric")}
-                />
-              }
-            />
           </Card>
 
           <SectionLabel label={t("profile.info")} />
@@ -141,28 +100,6 @@ export default function PassengerProfileScreen() {
               title={t("profile.aboutFleet")}
               subtitle={t("profile.aboutFleetSub")}
               onPress={() => router.push("/passenger/about")}
-            />
-            <Divider />
-            <SettingsRow
-              icon="cleaning-services"
-              tone="slate"
-              title={t("profile.guidelines")}
-              subtitle={t("profile.guidelinesSub")}
-              onPress={() =>
-                showToast("info", t("profile.guidelines"), t("profile.guidelinesSub"))
-              }
-            />
-            <Divider />
-            <SettingsRow
-              icon="contact-emergency"
-              tone="red"
-              title={t("profile.emergency")}
-              subtitle={t("profile.emergencySub")}
-              value={t("profile.configured")}
-              valueTone="success"
-              onPress={() =>
-                showToast("success", t("profile.emergency"), "Abdul Popalzai · 0700 555 210")
-              }
             />
             <Divider />
             <SettingsRow

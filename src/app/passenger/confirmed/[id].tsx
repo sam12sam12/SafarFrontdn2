@@ -1,25 +1,29 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 
-import { BoardingPassCard } from "@/components/passenger/BoardingPassCard";
-import { BookedSeatCard } from "@/components/passenger/BookedSeatCard";
-import { MilestoneList } from "@/components/passenger/MilestoneList";
 import { TripSummaryCard } from "@/components/passenger/TripSummaryCard";
 import { TripDetailsSkeleton } from "@/components/skeletons/PassengerSkeletons";
+import { AppButton } from "@/components/ui/AppButton";
 import { AppHeader } from "@/components/ui/AppHeader";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
+import { DetailRow } from "@/components/ui/DetailRow";
+import { HeaderIcon } from "@/components/ui/HeaderIcon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { Screen } from "@/components/ui/Screen";
 import { useBooking } from "@/lib/queries/bookingsQueries";
 import { useDriver } from "@/lib/queries/driversQueries";
 import { useTrip } from "@/lib/queries/tripsQueries";
+import { formatDayMonth } from "@/lib/dates";
+import { minusMinutes } from "@/lib/format";
 import { colors } from "@/utils/theme";
 
 export default function BookingConfirmedScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const bookingQuery = useBooking(id);
   const { data: booking } = bookingQuery;
@@ -35,6 +39,11 @@ export default function BookingConfirmedScreen() {
 
   const fromCity = trip ? t(`common.${trip.from.toLowerCase()}`) : t("common.kandahar");
   const toCity = trip ? t(`common.${trip.to.toLowerCase()}`) : t("common.kabul");
+  const paid = booking?.paymentStatus === "paid";
+  const gate = trip?.gate ?? "3";
+  const boardingCutoff = trip ? `${minusMinutes(trip.departTime, 30)} ${trip.departPeriod}` : "";
+  const method =
+    booking?.payment === "hesabpay" ? t("confirmed.hesabpay") : t("confirmed.cash");
 
   return (
     <Screen
@@ -52,7 +61,17 @@ export default function BookingConfirmedScreen() {
         style={{ position: "absolute", left: 0, right: 0, top: 0, height: 430 }}
       />
 
-      <AppHeader title={t("trip.title")} />
+      <AppHeader
+        title={t("confirmed.header")}
+        showBack={false}
+        right={
+          <HeaderIcon
+            icon="close"
+            accessibilityLabel={t("common.close")}
+            onPress={() => router.replace("/passenger")}
+          />
+        }
+      />
 
       {bookingQuery.isLoading || tripQuery.isLoading ? (
         <TripDetailsSkeleton />
@@ -87,57 +106,129 @@ export default function BookingConfirmedScreen() {
             </Text>
           </View>
 
-          {trip ? (
+          {trip && booking ? (
             <View className="gap-3 mt-5">
-              <TripSummaryCard trip={trip} driver={driver ?? undefined} />
-
-              {booking ? (
-                <BookedSeatCard
-                  seat={booking.seats[0] ?? "02"}
-                  name={booking.passengerName}
-                />
-              ) : null}
-
-              {booking ? <BoardingPassCard booking={booking} trip={trip} /> : null}
-
               <Card>
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-lg font-bold text-text">{t("trip.milestones")}</Text>
-                  <Text className="text-sm font-semibold text-primary">{t("trip.liveLog")}</Text>
+                <View className="flex-row items-center justify-between gap-2">
+                  <Text className="text-base-lg font-bold text-text">
+                    {t("confirmed.bookingDetails")}
+                  </Text>
+                  <Badge label={booking.code} tone="dark" icon="confirmation-number" />
                 </View>
-                <MilestoneList
-                  items={[
-                    {
-                      title: t("trip.boarded"),
-                      detail: trip.boardingPoint,
-                      time: `${trip.departTime} ${trip.departPeriod}`,
-                      state: "done",
-                    },
-                    {
-                      title: t("trip.qalat"),
-                      detail: t("trip.qalatDetail"),
-                      time: "08:45 AM",
-                      state: "done",
-                    },
-                    {
-                      title: t("trip.ghazni"),
-                      detail: t("trip.ghazniDetail"),
-                      time: "11:00 AM",
-                      state: "active",
-                    },
-                    {
-                      title: t("trip.kabulTerminal"),
-                      detail: t("trip.kabulDetail"),
-                      time: `~${trip.arriveTime} ${trip.arrivePeriod}`,
-                      state: "upcoming",
-                    },
-                  ]}
+
+                <DetailRow
+                  className="mt-1.5"
+                  label={t("common.passenger")}
+                  value={booking.passengerName}
+                />
+                <DetailRow
+                  className="border-t border-border"
+                  label={t("common.seat")}
+                  value={booking.seats.join(", ") || "—"}
+                />
+                <DetailRow
+                  className="border-t border-border"
+                  label={t("confirmed.departure")}
+                  value={`${trip.departTime} ${trip.departPeriod} · ${formatDayMonth(trip.date, i18n.language)}`}
+                />
+                <DetailRow
+                  className="border-t border-border"
+                  label={t("confirmed.boardingPoint")}
+                  value={trip.boardingPoint}
                 />
               </Card>
+
+              <TripSummaryCard trip={trip} driver={driver ?? undefined} />
+
+              <Card>
+                <View className="flex-row items-center justify-between gap-2">
+                  <Text className="text-base-lg font-bold text-text">
+                    {t("confirmed.paymentSummary")}
+                  </Text>
+                  <Badge
+                    label={paid ? t("bookings.paid") : t("common.due")}
+                    tone={paid ? "green" : "amber"}
+                    icon={paid ? "verified" : "payments"}
+                  />
+                </View>
+
+                <DetailRow
+                  className="mt-1.5"
+                  label={t("payment.method")}
+                  value={method}
+                />
+                <DetailRow
+                  className="border-t border-border"
+                  label={t("confirmed.amount")}
+                  value={`${booking.amount.toLocaleString("en-US")} ${t("common.afn")}`}
+                />
+                <DetailRow
+                  className="border-t border-border"
+                  label={t("confirmed.reference")}
+                  value={booking.reference ?? booking.code}
+                  tone="muted"
+                />
+              </Card>
+
+              <Card>
+                <Text className="text-base-lg font-bold text-text">
+                  {t("confirmed.beforeYouTravel")}
+                </Text>
+
+                <View className="gap-3 mt-3">
+                  <TipRow
+                    icon="schedule"
+                    title={t("confirmed.arriveEarly")}
+                    detail={t("confirmed.arriveEarlySub", { gate, time: boardingCutoff })}
+                  />
+                  <TipRow
+                    icon="badge"
+                    title={t("confirmed.carryId")}
+                    detail={t("confirmed.carryIdSub")}
+                  />
+                  <TipRow
+                    icon="event-available"
+                    title={t("bookings.freeCancellation")}
+                    detail={t("bookings.freeCancellationSub")}
+                  />
+                </View>
+              </Card>
+
+              <View className="flex-row gap-2.5 mt-2">
+                <AppButton
+                  className="flex-1"
+                  label={t("trip.viewTrip")}
+                  icon="map"
+                  onPress={() =>
+                    router.replace({ pathname: "/passenger/trip/[id]", params: { id: trip.id } })
+                  }
+                />
+                <AppButton
+                  className="flex-1"
+                  variant="secondary"
+                  label={t("bookings.title")}
+                  icon="confirmation-number"
+                  onPress={() => router.replace("/passenger/bookings")}
+                />
+              </View>
             </View>
           ) : null}
         </View>
       )}
     </Screen>
+  );
+}
+
+function TipRow({ icon, title, detail }: { icon: IconName; title: string; detail: string }) {
+  return (
+    <View className="flex-row items-start gap-3">
+      <View className="w-9 h-9 rounded-full bg-primarySoft items-center justify-center">
+        <Icon name={icon} size={18} color={colors.primary} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-text">{title}</Text>
+        <Text className="text-sm text-secText mt-0.5 leading-5">{detail}</Text>
+      </View>
+    </View>
   );
 }
