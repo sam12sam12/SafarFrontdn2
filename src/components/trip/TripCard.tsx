@@ -108,26 +108,8 @@ export function TripCard({
         className="p-4"
         style={({ pressed }) => (pressed ? { opacity: 0.94 } : undefined)}
       >
-        {/* date · code + service */}
-        <View className="flex-row items-center justify-between gap-2">
-          <View className="flex-row items-center gap-1.5 flex-1">
-            <Icon name="event" size={12} color={colors.muted} />
-            <Text
-              className="text-2xs font-bold uppercase tracking-[0.8px] text-muted"
-              numberOfLines={1}
-            >
-              {dateText} · #{trip.code}
-            </Text>
-          </View>
-          <Badge
-            label={vip ? t("driver.vipFamily") : t("driver.shared")}
-            tone={vip ? "violet" : "blue"}
-            compact
-          />
-        </View>
-
-        {/* driver */}
-        <View className="flex-row items-center gap-3 mt-3">
+        {/* driver — name + rating on the left, service badge on the far right */}
+        <View className="flex-row items-center gap-3">
           <Avatar
             initials={driver?.initials ?? "—"}
             photo={driver?.photo}
@@ -159,6 +141,11 @@ export function TripCard({
               </Text>
             )}
           </View>
+          <Badge
+            label={vip ? t("driver.vipFamily") : t("driver.shared")}
+            tone={vip ? "violet" : "blue"}
+            compact
+          />
         </View>
 
         <RouteStrip
@@ -170,6 +157,7 @@ export function TripCard({
           arriveTime={trip.arriveTime}
           arrivePeriod={trip.arrivePeriod}
           duration={trip.duration}
+          dateText={dateText}
         />
 
         {/* car */}

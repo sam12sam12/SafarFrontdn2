@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 
 import { cn } from "@/utils/cn";
+import { colors } from "@/utils/theme";
+import { Icon } from "./Icon";
 
 type Props = {
   fromCity: string;
@@ -10,6 +12,8 @@ type Props = {
   arriveTime: string;
   arrivePeriod: string;
   duration: string;
+  /** When set, shown under the connector line with a small date icon. */
+  dateText?: string;
   className?: string;
 };
 
@@ -21,6 +25,7 @@ export function RouteStrip({
   arriveTime,
   arrivePeriod,
   duration,
+  dateText,
   className,
 }: Props) {
   return (
@@ -45,8 +50,20 @@ export function RouteStrip({
         <View className="flex-row items-center w-full">
           <View className="w-1.5 h-1.5 rounded-full bg-primary" />
           <View className="flex-1 h-[2px] bg-primary/50" />
+          <View className="w-6 h-6 rounded-full bg-card border border-primaryBorder items-center justify-center -mx-0.5">
+            <Icon name="directions-car" size={13} color={colors.primary} />
+          </View>
+          <View className="flex-1 h-[2px] bg-primary/50" />
           <View className="w-1.5 h-1.5 rounded-full bg-primary" />
         </View>
+        {dateText ? (
+          <View className="flex-row items-center gap-1 mt-1.5">
+            <Icon name="event" size={11} color={colors.muted} />
+            <Text className="text-2xs font-semibold text-muted" numberOfLines={1}>
+              {dateText}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <View className="flex-1 items-end">
